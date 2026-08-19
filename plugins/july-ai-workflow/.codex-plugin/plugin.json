@@ -1,0 +1,18 @@
+{
+  "name": "july-ai-workflow",
+  "version": "0.1.0",
+  "description": "从 DesignDoc 中的已有策划案推进 July Unity 项目研发流程",
+  "author": {
+    "name": "July"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "July AI Workflow",
+    "shortDescription": "从项目策划案推进设计、实现与验收。",
+    "longDescription": "仅在显式调用后运行，面向已创建的 July/Luban Unity 项目，从 DesignDoc/<项目名>/策划案.md 依次推进 GDD、设计审查、MDD、实现、验收与变更同步。",
+    "developerName": "July",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "使用 $july-game-pipeline 继续我的游戏项目制作。"
+  }
+}

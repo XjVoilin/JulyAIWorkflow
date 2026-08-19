@@ -1,0 +1,20 @@
+{
+  "name": "july-ai-workflow",
+  "interface": {
+    "displayName": "July AI Workflow"
+  },
+  "plugins": [
+    {
+      "name": "july-ai-workflow",
+      "source": {
+        "source": "local",
+        "path": "./plugins/july-ai-workflow"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
