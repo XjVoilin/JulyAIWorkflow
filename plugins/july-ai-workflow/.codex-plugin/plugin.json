@@ -1,18 +1,18 @@
 {
   "name": "july-ai-workflow",
-  "version": "0.1.0",
-  "description": "从 DesignDoc 中的已有策划案推进 July Unity 项目研发流程",
+  "version": "0.1.0+codex.20260820014946",
+  "description": "\u4ece DesignDoc \u4e2d\u7684\u5df2\u6709\u7b56\u5212\u6848\u63a8\u8fdb July Unity \u9879\u76ee\u7814\u53d1\u6d41\u7a0b",
   "author": {
     "name": "July"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "July AI Workflow",
-    "shortDescription": "从项目策划案推进设计、实现与验收。",
-    "longDescription": "仅在显式调用后运行，面向已创建的 July/Luban Unity 项目，从 DesignDoc/<项目名>/策划案.md 依次推进 GDD、设计审查、MDD、实现、验收与变更同步。",
+    "shortDescription": "\u4ece\u9879\u76ee\u7b56\u5212\u6848\u63a8\u8fdb\u8bbe\u8ba1\u3001\u5b9e\u73b0\u4e0e\u9a8c\u6536\u3002",
+    "longDescription": "\u4ec5\u5728\u663e\u5f0f\u8c03\u7528\u540e\u8fd0\u884c\uff0c\u9762\u5411\u5df2\u521b\u5efa\u7684 July/Luban Unity \u9879\u76ee\uff0c\u4ece DesignDoc/<\u9879\u76ee\u540d>/\u7b56\u5212\u6848.md \u4f9d\u6b21\u63a8\u8fdb GDD\u3001\u8bbe\u8ba1\u5ba1\u67e5\u3001MDD\u3001\u5b9e\u73b0\u3001\u9a8c\u6536\u4e0e\u53d8\u66f4\u540c\u6b65\u3002",
     "developerName": "July",
     "category": "Productivity",
     "capabilities": [],
-    "defaultPrompt": "使用 $july-game-pipeline 继续我的游戏项目制作。"
+    "defaultPrompt": "\u4f7f\u7528 $july-game-pipeline \u7ee7\u7eed\u6211\u7684\u6e38\u620f\u9879\u76ee\u5236\u4f5c\u3002"
   }
 }

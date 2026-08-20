@@ -5,7 +5,7 @@ Use this profile for products created from `Template_2022.3`. Verify the target 
 ## Required markers
 
 - Unity project directories: `Assets/`, `Packages/`, `ProjectSettings/`.
-- `ProjectSettings/ProjectVersion.txt` identifies the Editor baseline. The inspected seed currently uses `2022.3.62f2`.
+- `ProjectSettings/ProjectVersion.txt` identifies the target's actual Editor baseline. Read it from the target; do not assume a fixed patch version from a seed inspected elsewhere.
 - `Packages/manifest.json` contains `com.july.arch` and `com.code-philosophy.luban` plus the product's selected dependency closure.
 - `Tools/Luban/DataTables/` contains Luban authoring inputs.
 
@@ -31,6 +31,10 @@ Target-project gameplay may and should use JulyArch roles when their semantics f
 Do not force a simple class into a JulyArch role when it needs none of those semantics. Conversely, do not avoid JulyArch for stateful, lifecycle-managed, orchestrating, or scene-bound business responsibilities that match a role.
 
 Keep project-specific behavior in the target project even when it uses JulyArch. Move code into `JulyFramework` only when it is a reusable capability with a stable cross-product contract and package-level tests. Do not duplicate an installed July capability inside product code.
+
+## Framework capability gap decision
+
+Before adding a product-side substitute, inspect the exact pin and decide ownership from the real consumer and stable contract. A remembered API or another product's helper does not prove a gap. If a reusable July responsibility appears absent or ownership is ambiguous, stop and follow [框架能力缺口 Gate](framework-gap-gate.md); do not create a speculative product abstraction.
 
 ## Selecting packages
 

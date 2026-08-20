@@ -23,8 +23,7 @@ plugins/july-ai-workflow/
     ├── references/                              # 按阶段渐进加载的规则
     ├── assets/templates/                        # 写入目标项目的产物模板
     └── scripts/                                 # 状态初始化、流转与验证
-docs/                                            # 参考分析与架构说明
-CONTEXT.md                                       # 领域词汇
+docs/                                            # 架构与决策说明
 ```
 
 ## 使用
@@ -78,6 +77,5 @@ python plugins/july-ai-workflow/skills/july-game-pipeline/scripts/flow.py init `
 
 ## 设计依据
 
-- [参考工程分析](docs/reference-analysis.md)
 - [架构](docs/architecture.md)
 - [状态真相源决策](docs/adr/0001-machine-readable-workflow-state.md)

@@ -11,17 +11,20 @@ DesignDoc/<项目名>/
 ├── QA_GDD.md
 ├── 工作流状态.md
 ├── .july-ai-workflow.json
+├── 框架缺口/
+│   └── FG-<编号>_<能力>.md
 ├── MDD/
 │   ├── 索引.md
 │   ├── 进度.md
-│   ├── 资源清单.md
+│   ├── 资源清单.md（按需）
 │   └── M<N>_<module>.md
 ├── ConfigDraft/
 └── QA/
     └── 验收报告.md
 ```
 
-Create only directories and artifacts required by the selected design. `ConfigDraft/` is used only when the MDD defines Luban source changes; `QA/` is created when implementation validation begins.
+Create only directories and artifacts required by the selected design. `MDD/资源清单.md` is created only when several resource families, import/build paths, or an independent resource Gate justify a separate document; otherwise resources stay in `MDD/索引.md`. `ConfigDraft/` is used only when the MDD defines Luban source changes; `QA/` is created when implementation validation begins.
+`框架缺口/` 只在确认 July Framework 缺失并阻塞流程时创建；其中的方案是讨论、实现边界和恢复证据的事实源，不用于记录普通产品功能缺口。
 
 ## Truth ownership
 
@@ -29,6 +32,7 @@ Create only directories and artifacts required by the selected design. `ConfigDr
 - GDD owns all player-facing behavior. It must not defer behavior to MDD.
 - GDD review owns issue severity and the pass/block decision.
 - MDD owns implementation structure, interfaces, dependencies, files, and technical acceptance.
+- 框架缺口方案 owns a confirmed reusable framework deficiency, package-level solution, migration impact, and resume evidence.
 - Luban source workbooks/schema own configurable values and data shape.
 - Code and tests own actual behavior.
 - `.july-ai-workflow.json` owns Stage state and transition history.
@@ -60,4 +64,4 @@ Evidence passed to `flow.py complete` must be:
 - already present on disk;
 - sufficient to demonstrate the selected Stage outcome.
 
-One placeholder file is not valid evidence for a multi-file MDD stage. Pass the index plus all module/progress/resource documents that define the implementation contract.
+One placeholder file is not valid evidence for a multi-file MDD stage. Pass the index, progress, all module documents, and the resource manifest only when the index declares one.

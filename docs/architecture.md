@@ -37,3 +37,19 @@ Each Stage is completed by `flow.py complete` with project-relative Evidence. Th
 - Code, Luban source data, tests, and reports own implementation evidence.
 - `DesignDoc/<product>/.july-ai-workflow.json` owns Stage state and transition history.
 - `工作流状态.md` contains no independent truth and is regenerated after every mutation.
+
+## Vocabulary
+
+- **Product**: one game in an already-created July Unity project.
+- **Stage**: one ordered delivery state with explicit completion Evidence.
+- **Gate**: a decision that prevents downstream work until required Evidence passes.
+- **Evidence**: a project-relative artifact or verification result used by a transition.
+- **Reopen**: invalidating a Stage and its downstream state after an owned truth changes.
+
+## Design rationale
+
+- One explicit Skill keeps the external interface small; stage detail remains conditionally loaded behind it.
+- Stable templates define artifact shape but do not replace product decisions.
+- July package calls are verified against target pins; product behavior stays in the target project and only reusable capability gaps enter the framework Gate.
+- Luban workbooks and schema are source inputs, while generated C#/JSON are derived outputs.
+- Product complexity controls MDD depth. Optional artifacts are generated only when their independent ownership or Gate justifies them.
