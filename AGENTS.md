@@ -10,5 +10,6 @@ This repository defines a reusable workflow for projects built on Template_2022.
 - Generated Luban C#/JSON is never an authoring surface.
 - Product gameplay may use JulyArch `Store`, `System`, `Procedure`, and `View` roles. Choose by responsibility; do not force simple classes into roles or forbid fitting business code from using them. Keep project-specific behavior in the target project and reserve JulyFramework package changes for reusable cross-product capabilities.
 - Product-specific host rules are local evidence only. Do not promote them to universal July rules.
+- Before creating product-side files, calibrate layout and framework composition from explicit user direction, user-designated references, current-project precedents, and exact pinned July/template examples in that order. A sparse seed project is not evidence for inventing generic architectural layers.
 - Keep the marketplace entry mapped to `plugins/july-ai-workflow`, and keep the plugin manifest name and plugin folder name identical. Do not create a second copy of `july-game-pipeline` outside the plugin package.
 - New or changed scripts require focused tests and observable verification.

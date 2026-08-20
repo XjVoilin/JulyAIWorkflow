@@ -46,10 +46,10 @@ description: 仅在用户显式调用本 Skill 时，从当前 July/Luban Unity�
 
 1. 读取策划案、GDD、指定 MDD和当前工程。
 2. 检查 MDD对应的 GDD行为是否足够明确；存在影响实现的产品问题时先询问用户。
-3. 根据当前代码、实际安装的 July包和 Luban配置校准原 MDD。
-4. 满足产物契约后，将 MDD更新为 `状态：可实现`。
-5. 只实现指定 MDD的范围。
-6. 按需读取 [Luban工作流](references/luban-workflow.md)；生成或修改代码时读取 [代码质量规则](references/code-quality.md)。
+3. 读取 [项目结构校准](references/project-structure-calibration.md)，根据当前代码、用户指定的参考项目、实际安装的 July包和 Luban配置校准原 MDD；通过结构校准门之前不要创建业务文件。
+4. 涉及配置表时，在确定工作簿名称、路径或创建文件之前读取 [Luban工作流](references/luban-workflow.md)。
+5. 满足产物契约后，将 MDD更新为 `状态：可实现`。
+6. 只实现指定 MDD的范围；生成或修改代码时读取 [代码质量规则](references/code-quality.md)。
 7. 执行 MDD约定的编译、测试和运行验证。
 8. 把实际修改、设计差异和验证结果写回同一份 MDD；通过后更新为 `状态：已完成`。
 
