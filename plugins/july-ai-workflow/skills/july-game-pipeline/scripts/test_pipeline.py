@@ -39,6 +39,24 @@ class FlowTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temporary.cleanup()
 
+    def test_mdd_test_strategy_is_risk_driven_not_window_driven(self) -> None:
+        skill_root = Path(__file__).resolve().parents[1]
+        stage = (skill_root / "references/stages/mdd.md").read_text(encoding="utf-8")
+        module_template = (skill_root / "assets/templates/MDD_MODULE.md").read_text(
+            encoding="utf-8"
+        )
+        index_template = (skill_root / "assets/templates/MDD_INDEX.md").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("Derive the test surface from a concrete risk inventory", stage)
+        self.assertIn(
+            "Do not mechanically create one test file per module or Window", stage
+        )
+        self.assertIn("测试文件不按模块、类、Procedure 或 Window 数量机械生成", module_template)
+        self.assertIn("## 测试策略与预算", index_template)
+        self.assertIn("不为每个 Window 机械创建测试", index_template)
+
     def write_mdd_bundle(
         self,
         complexity: str = "complex",
