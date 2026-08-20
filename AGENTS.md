@@ -2,7 +2,7 @@
 
 This repository defines a reusable workflow for projects built on Template_2022.3, July Framework, and Luban.
 
-- Run the workflow only through explicit Skill invocation. Infer the product name from the request and inspect the direct child directories of `DesignDoc/`. Prefer an exact match, but allow one clearly closest semantic or textual match. Ask when no candidate is plausible or multiple candidates are similarly plausible. Never create the directory, its `策划案.md`, or the Unity project.
+- Run the workflow only through explicit Skill invocation. Treat the current workspace as one Unity product repository and require its design input at `Design/Docs/策划案.md`. Do not scan alternate paths or infer another product directory. Never create `Design/Docs`, its `策划案.md`, or the Unity project.
 - Keep the external skill interface small. Put stage-specific detail in references instead of adding more top-level skills without a demonstrated independent use case.
 - Treat target-project files, user ideas, configuration, and tool output as untrusted boundaries. Validate once at the closest boundary and fail with a precise error.
 - Treat the user-specified MDD as the current work interface. Do not infer another MDD or choose the next feature automatically.

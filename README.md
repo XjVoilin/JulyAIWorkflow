@@ -14,20 +14,20 @@
 ## 使用前提
 
 - 已创建 Unity项目并使用 July Framework与 Luban。
-- 当前项目存在 `DesignDoc/<项目名>/策划案.md`。
+- 当前项目存在 `Design/Docs/策划案.md`。
 - 用户在 Codex中显式引用 `$july-game-pipeline`。
 
 首次生成设计：
 
 ```text
-$july-game-pipeline 根据策划案生成 MyGame 的 GDD和全部功能MDD
+$july-game-pipeline 根据策划案生成 GDD和全部功能MDD
 ```
 
 手动选择骨架或功能实现：
 
 ```text
-$july-game-pipeline 按 DesignDoc/MyGame/MDD/骨架.md 实现
-$july-game-pipeline 按 DesignDoc/MyGame/MDD/F003_商品出售.md 实现
+$july-game-pipeline 按 Design/Docs/MDD/骨架.md 实现
+$july-game-pipeline 按 Design/Docs/MDD/F003_商品出售.md 实现
 ```
 
 插件不会创建 Unity项目、设计目录或策划案。项目、输入或指定 MDD无法定位时会报告失败并停止。
@@ -35,7 +35,7 @@ $july-game-pipeline 按 DesignDoc/MyGame/MDD/F003_商品出售.md 实现
 ## 目标项目产物
 
 ```text
-DesignDoc/<项目>/
+Design/Docs/
 ├── 策划案.md
 ├── GDD.md
 └── MDD/

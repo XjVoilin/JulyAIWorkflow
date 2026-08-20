@@ -13,10 +13,10 @@
 
 ### 生成设计
 
-用户显式调用 Skill并指定项目，插件从策划案生成：
+用户在目标 Unity项目中显式调用 Skill，插件从当前项目的策划案生成：
 
 ```text
-DesignDoc/<项目>/
+Design/Docs/
 ├── 策划案.md
 ├── GDD.md
 └── MDD/
@@ -39,13 +39,13 @@ DesignDoc/<项目>/
 用户显式引用一份 MDD，例如：
 
 ```text
-$july-game-pipeline 按 DesignDoc/<项目>/MDD/骨架.md 实现
+$july-game-pipeline 按 Design/Docs/MDD/骨架.md 实现
 ```
 
 或者：
 
 ```text
-$july-game-pipeline 按 DesignDoc/<项目>/MDD/F003_商品出售.md 实现
+$july-game-pipeline 按 Design/Docs/MDD/F003_商品出售.md 实现
 ```
 
 插件读取策划案、GDD、指定 MDD和当前工程：
@@ -76,7 +76,7 @@ $july-game-pipeline 按 DesignDoc/<项目>/MDD/F003_商品出售.md 实现
 ## 失败行为
 
 - 找不到目标设计目录、策划案或用户指定的 MDD时，报告失败并停止。
-- MDD路径必须位于当前工作区的 `DesignDoc/<项目>/MDD/`。
+- MDD路径必须位于当前工作区的 `Design/Docs/MDD/`。
 - 策划案或 GDD缺少影响实现的产品决定时，询问用户，不自行补全。
 - MDD与当前工程冲突时，以当前工程证据为准修订 MDD；如果冲突改变产品行为，先更新 GDD。
 - July或 Luban能力无法确认时报告缺失证据，不创建猜测接口或替代实现。
