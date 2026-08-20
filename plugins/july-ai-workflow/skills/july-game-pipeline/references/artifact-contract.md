@@ -1,67 +1,80 @@
-# 产物约定
+# 第一版产物契约
 
-## Location and naming
+## 输入
 
-当前 Unity 项目中的 `DesignDoc/<项目名>/` 是该项目所有设计产物和流程状态的根目录。项目名来自显式调用 Skill 的对话，目录必须在流程开始前存在并包含 `策划案.md`。
+`DesignDoc/<项目>/策划案.md` 是用户提供的产品输入。插件不得自动创建策划案，也不得用推测内容补齐缺失文件。
 
-```text
-DesignDoc/<项目名>/
-├── 策划案.md
-├── GDD.md
-├── QA_GDD.md
-├── 工作流状态.md
-├── .july-ai-workflow.json
-├── 框架缺口/
-│   └── FG-<编号>_<能力>.md
-├── MDD/
-│   ├── 索引.md
-│   ├── 进度.md
-│   ├── 资源清单.md（按需）
-│   └── M<N>_<module>.md
-├── ConfigDraft/
-└── QA/
-    └── 验收报告.md
-```
+## GDD
 
-Create only directories and artifacts required by the selected design. `MDD/资源清单.md` is created only when several resource families, import/build paths, or an independent resource Gate justify a separate document; otherwise resources stay in `MDD/索引.md`. `ConfigDraft/` is used only when the MDD defines Luban source changes; `QA/` is created when implementation validation begins.
-`框架缺口/` 只在确认 July Framework 缺失并阻塞流程时创建；其中的方案是讨论、实现边界和恢复证据的事实源，不用于记录普通产品功能缺口。
+`DesignDoc/<项目>/GDD.md` 是产品设计事实来源，至少明确：
 
-## Truth ownership
+- 产品定位与玩家目标；
+- 核心循环；
+- 全局概念和规则；
+- 可独立验收的功能切片；
+- 每个功能的触发、流程、状态变化和验收场景；
+- 本轮范围、排除项和未决问题。
 
-- `策划案.md` owns goals, audience, constraints, confirmed product choices, and open questions.
-- GDD owns all player-facing behavior. It must not defer behavior to MDD.
-- GDD review owns issue severity and the pass/block decision.
-- MDD owns implementation structure, interfaces, dependencies, files, and technical acceptance.
-- 框架缺口方案 owns a confirmed reusable framework deficiency, package-level solution, migration impact, and resume evidence.
-- Luban source workbooks/schema own configurable values and data shape.
-- Code and tests own actual behavior.
-- `.july-ai-workflow.json` owns Stage state and transition history.
-- `工作流状态.md` is generated from that JSON after every state mutation for human inspection; never edit it manually.
+GDD不写类名、文件路径或技术调用方式。影响实现的产品问题未解决时，对应 MDD只能保持 `规划`。
 
-Do not maintain the same fact in two truth sources. Downstream artifacts may summarize an upstream fact only when they name its version and explain why the local copy is necessary.
+## MDD目录
 
-## Metadata
-
-Every plan, GDD, review, MDD index, and validation report begins with:
+所有 MDD位于 `DesignDoc/<项目>/MDD/`：
 
 ```text
-> 版本：v1.0 | 日期：YYYY-MM-DD | 状态：draft/reviewed/approved
-> 上游：<artifact and version, or none>
+MDD/
+├── 骨架.md
+├── F001_<功能>.md
+├── F002_<功能>.md
+└── ...
 ```
 
-Increment a document version when its owned truth changes. Formatting-only edits do not require a version change.
+`骨架.md`描述最小核心闭环和整体技术方向。其他文件各自对应一个功能切片，不按技术层拆成 Store MDD、System MDD或 View MDD。
 
-## Unresolved information
+## MDD公共信息
 
-Use `[待确认]` only for a concrete product decision and state its impact. A stage cannot complete when an unresolved item changes the core loop, win/loss rules, persistence ownership, online/offline model, monetization, or required platform capability. Non-blocking polish choices may remain if the downstream default is explicitly approved.
+每份 MDD顶部必须包含：
 
-## Evidence
+```text
+状态：规划
+对应GDD：<章节或功能名>
+```
 
-Evidence passed to `flow.py complete` must be:
+正文始终维护这些事实：
 
-- relative to the target project root;
-- inside that project;
-- already present on disk;
-- sufficient to demonstrate the selected Stage outcome.
+- 目标、范围和排除项；
+- 涉及的技术模块及各自职责；
+- 状态、数据和所有权；
+- JulyArch角色选择；
+- Luban、资源、存档和场景需求；
+- 依赖、风险和未决问题；
+- 可执行的验收方式。
 
-One placeholder file is not valid evidence for a multi-file MDD stage. Pass the index, progress, all module documents, and the resource manifest only when the index declares one.
+结构以清楚表达事实为准，不为了套模板创建没有内容的章节。
+
+## 规划
+
+首次从策划案和 GDD生成的 MDD使用 `状态：规划`。它描述预计技术方向，但不得承诺未经当前工程验证的类、文件、接口和调用方式。
+
+## 可实现
+
+用户手动引用一份 MDD开始开发时，必须先读取当前工程并校准原文。只有满足以下条件后才能更新为 `状态：可实现`：
+
+- GDD规则足以支持实现；
+- 已检查当前代码和实际安装的 July包；
+- 已确认涉及的现有模块、接口和调用方式；
+- 已明确 Store、System、Procedure、View或普通类的职责；
+- 已明确 Luban表、资源、存档和场景变化；
+- 已列出实际修改范围和验证方法；
+- 没有影响实现的未决问题。
+
+## 已完成
+
+只有约定范围实现并通过验证后才能更新为 `状态：已完成`。在同一份 MDD末尾记录：
+
+- 实际修改内容；
+- 与原设计的差异及原因；
+- 编译、测试和运行验证结果；
+- 未完成项或已知限制。
+
+验证失败时保留当前状态和失败证据，不写伪造的通过结论。

@@ -1,55 +1,94 @@
-# Architecture
+# July AI Workflow 第一版设计
 
-## External interface
+## 目标
 
-The repository is a Git-backed marketplace containing one plugin, `july-ai-workflow`. The plugin exposes one explicitly invoked skill, `july-game-pipeline`, and one deterministic command module:
+第一版只验证两件事：
 
-- `flow.py`: resolve `DesignDoc/<product>/` from the current July Unity project, then initialize, inspect, advance, reopen, and validate workflow state.
+1. 能否从已有 `策划案.md` 生成质量足够的核心 GDD和各功能 MDD。
+2. 能否让用户手动指定一份 MDD，驱动当前 Unity工程完成实现与验收。
 
-`.agents/plugins/marketplace.json` is the distribution boundary and maps the marketplace entry to `plugins/july-ai-workflow`. `.codex-plugin/plugin.json` owns the plugin identity and exposes the plugin-local `skills/` directory. Target product repositories do not receive a copied workflow Skill.
+第一版不保存全局流程状态，也不自动选择下一个功能。用户明确指定的 MDD就是本轮工作的接口。
 
-Stage instructions, templates, state rules, and project-profile checks remain inside that interface. Deleting this module would force every product repository to rediscover state ordering, evidence rules, artifact formats, July ownership, and Luban generation constraints.
+## 两个动作
 
-## Stage model
+### 生成设计
+
+用户显式调用 Skill并指定项目，插件从策划案生成：
 
 ```text
-策划案.md（前置输入）
-       ↓
-gdd → gdd_review → mdd → implementation → validation
- ↑                         |
- └──── reopen on change ───┘
+DesignDoc/<项目>/
+├── 策划案.md
+├── GDD.md
+└── MDD/
+    ├── 骨架.md
+    ├── F001_<功能>.md
+    ├── F002_<功能>.md
+    └── ...
 ```
 
-Each Stage is completed by `flow.py complete` with project-relative Evidence. The command rejects missing prerequisites, nonexistent evidence, absolute evidence paths, and paths outside the target project.
+`GDD.md` 维护产品级事实和各功能的玩家行为。每份功能 MDD对应一个能够独立演示和验收的功能切片，不按 Store、System、View等技术层横向拆分。
 
-## Seams
+首次生成的 MDD状态为 `规划`：
 
-- `.july-ai-workflow.json` is the machine-state interface; `工作流状态.md` is its automatically refreshed human-readable projection.
-- The product name and target Unity project are external seams. The name resolves only to `DesignDoc/<product>/`; its existence, required `策划案.md`, project markers, dependencies, and evidence paths are validated there.
-- No framework adapter seam exists yet: this repository intentionally supports one Project Profile, standalone July. Add another profile only when a second real target differs.
+- `骨架.md` 定义最小核心闭环和整体技术方向。
+- 功能 MDD描述预计职责、模块、数据、配置、依赖、风险和未决问题。
+- 不承诺未经当前工程验证的类名、文件、接口或调用方式。
 
-## Artifact ownership
+### 按 MDD实现
 
-- `策划案.md` owns confirmed intent and open product decisions.
-- GDD owns player-facing behavior.
-- GDD review owns the gate decision and issue evidence.
-- MDD owns technical decomposition and interfaces.
-- Code, Luban source data, tests, and reports own implementation evidence.
-- `DesignDoc/<product>/.july-ai-workflow.json` owns Stage state and transition history.
-- `工作流状态.md` contains no independent truth and is regenerated after every mutation.
+用户显式引用一份 MDD，例如：
 
-## Vocabulary
+```text
+$july-game-pipeline 按 DesignDoc/<项目>/MDD/骨架.md 实现
+```
 
-- **Product**: one game in an already-created July Unity project.
-- **Stage**: one ordered delivery state with explicit completion Evidence.
-- **Gate**: a decision that prevents downstream work until required Evidence passes.
-- **Evidence**: a project-relative artifact or verification result used by a transition.
-- **Reopen**: invalidating a Stage and its downstream state after an owned truth changes.
+或者：
 
-## Design rationale
+```text
+$july-game-pipeline 按 DesignDoc/<项目>/MDD/F003_商品出售.md 实现
+```
 
-- One explicit Skill keeps the external interface small; stage detail remains conditionally loaded behind it.
-- Stable templates define artifact shape but do not replace product decisions.
-- July package calls are verified against target pins; product behavior stays in the target project and only reusable capability gaps enter the framework Gate.
-- Luban workbooks and schema are source inputs, while generated C#/JSON are derived outputs.
-- Product complexity controls MDD depth. Optional artifacts are generated only when their independent ownership or Gate justifies them.
+插件读取策划案、GDD、指定 MDD和当前工程：
+
+1. 检查 MDD对应的 GDD规则是否足以实现；不足时先提出具体问题。
+2. 根据当前代码、July Framework和 Luban配置校准指定 MDD。
+3. 将 MDD状态更新为 `可实现`。
+4. 只实现这份 MDD约定的范围。
+5. 执行约定验证，并把实际结果写回这份 MDD。
+6. 验收通过后将状态更新为 `已完成`。
+
+同一份 MDD同时承担规划、可实现方案和实现结果的连续记录，不创建中央状态文件。
+
+## MDD状态
+
+每份 MDD只使用三个状态：
+
+```text
+规划 -> 可实现 -> 已完成
+```
+
+- `规划`：来自策划案和 GDD的初步技术方向。
+- `可实现`：已经根据当前工程校准，可以指导本轮编码。
+- `已完成`：约定范围已经实现并通过文档中的验收场景。
+
+实现或验收未通过时保持当前状态，记录具体问题，不伪造完成。
+
+## 失败行为
+
+- 找不到目标设计目录、策划案或用户指定的 MDD时，报告失败并停止。
+- MDD路径必须位于当前工作区的 `DesignDoc/<项目>/MDD/`。
+- 策划案或 GDD缺少影响实现的产品决定时，询问用户，不自行补全。
+- MDD与当前工程冲突时，以当前工程证据为准修订 MDD；如果冲突改变产品行为，先更新 GDD。
+- July或 Luban能力无法确认时报告缺失证据，不创建猜测接口或替代实现。
+
+## 第一版明确不做
+
+- 不创建 `.july-ai-workflow.json`。
+- 不创建 `工作流状态.md`。
+- 不维护全局阶段、历史、依赖图或自动续跑。
+- 不自动决定下一个功能。
+- 不支持多个功能并行管理。
+- 不建立独立 GDD审查、变更同步或框架缺口流程。
+- 不预建状态脚本和产物模板。
+
+只有真实项目证明手动指定 MDD已经成为重复负担后，才考虑增加自动状态管理。

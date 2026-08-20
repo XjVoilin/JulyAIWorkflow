@@ -32,9 +32,9 @@ Do not force a simple class into a JulyArch role when it needs none of those sem
 
 Keep project-specific behavior in the target project even when it uses JulyArch. Move code into `JulyFramework` only when it is a reusable capability with a stable cross-product contract and package-level tests. Do not duplicate an installed July capability inside product code.
 
-## Framework capability gap decision
+## Framework capability gap
 
-Before adding a product-side substitute, inspect the exact pin and decide ownership from the real consumer and stable contract. A remembered API or another product's helper does not prove a gap. If a reusable July responsibility appears absent or ownership is ambiguous, stop and follow [框架能力缺口 Gate](framework-gap-gate.md); do not create a speculative product abstraction.
+Before adding a product-side substitute, inspect the exact pin and decide ownership from the real consumer and stable contract. A remembered API or another product's helper does not prove a gap. If a reusable July responsibility appears absent or ownership is ambiguous, report the missing capability and stop the current work item. The first version does not maintain a separate framework-gap state machine.
 
 ## Selecting packages
 

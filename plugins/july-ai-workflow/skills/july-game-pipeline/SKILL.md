@@ -1,78 +1,69 @@
 ---
 name: july-game-pipeline
-description: 仅在用户显式调用本 Skill 时，从当前 July Unity 项目中对应项目名的 DesignDoc 策划案开始，依次推进 GDD、审查、MDD、实现与验收。项目目录、策划案或 July/Luban 环境不存在时，报告失败并停止。
+description: 仅在用户显式调用本 Skill 时，从当前 July/Luban Unity项目的策划案生成 GDD与各功能规划MDD，或按用户手动指定的MDD完成校准、实现与验收。
 ---
 
 # July 游戏研发流程
 
-本 Skill 只有一个入口：用户显式引用 `$july-game-pipeline`，并表达制作、继续、推进或完善某个项目的意图。不要根据普通对话自动进入流程，也不要要求用户提供完整目录。
+本 Skill只在用户显式引用 `$july-game-pipeline` 时运行。第一版不维护中央状态，也不自动选择下一个功能。
 
-## 执行前提
+## 定位项目
 
-从用户表达中取得项目名 `<项目名>`，并使用当前 Codex 工作区作为 Unity 项目根目录。执行前必须同时满足：
+使用当前 Codex工作区作为 Unity项目根目录，并从用户表达或 MDD路径中确定项目：
 
-1. 用户的意图能够确定一个项目名；措辞不要求固定格式。无法确定时，只询问项目名。
-2. 查看当前工作区 `DesignDoc/` 的直接子目录。优先使用与项目名完全一致的目录；没有完全一致项时，可以选择唯一且明显最接近的语义或文字匹配。没有合理候选或多个候选同样接近时，列出候选并询问用户。
-3. 选中的项目目录中已有 `策划案.md`。不要扫描 `DesignDoc/` 之外的目录，也不要自动创建项目目录或策划案。
-4. 当前工作区是已经创建好的 Unity 项目，使用 July Framework 和 Luban，并包含 `Assets/`、`Packages/manifest.json`、`ProjectSettings/ProjectVersion.txt` 与 `Tools/Luban/DataTables/`。
+1. 只查看 `DesignDoc/` 的直接子目录。
+2. 项目名优先完全匹配；没有完全匹配时，可以采用唯一且明显合理的近似匹配。
+3. 没有合理匹配或多个候选同样合理时，列出候选并询问用户。
+4. 目标目录必须已有 `策划案.md`，不要自动创建或从其他位置寻找替代文件。
 
-任一前提不满足时，明确告知用户“执行失败”及缺失项，然后停止。将匹配后的真实目录名传给 `flow.py --product`；不要把用户的近似说法直接作为目录名。不要创建 Unity 项目、项目目录或策划案作为补救。
+读取 [July项目约定](references/july-project-profile.md) 并验证当前工程。前提不满足时，明确报告执行失败和缺失项，然后停止。
 
-## 开始流程
+## 选择动作
 
-1. 读取 [产物约定](references/artifact-contract.md) 和 [July 项目约定](references/july-project-profile.md)。
-2. 若 `DesignDoc/<项目名>/` 中存在 `.july-ai-workflow.json`，执行 `status`；否则执行 `init`。
-3. 根据状态只处理用户指定的阶段；未指定阶段时处理“下一阶段”。
-4. 开始阶段前执行 `start`，产物通过检查后执行 `complete`。
-5. 每次状态变更都会自动刷新该项目目录中的 `工作流状态.md`。JSON 是机器状态源，Markdown 是给人查看的自动生成视图，两者都不要手工修改。
+### 生成设计
 
-## 框架能力缺口 Gate
+在以下情况执行：
 
-每个阶段开始和实现任何替代机制之前，都必须核对目标项目精确 pin 下的 July Framework 能力。发现能力不足时，先判断它属于哪一侧：
+- 用户明确要求根据策划案生成或更新 GDD、MDD；
+- 目标目录只有策划案，用户要求开始或继续项目制作。
 
-- 只服务当前产品的玩法、内容、组合、Provider 选择或平台 adapter，留在产品项目并由 GDD/MDD 定义；
-- 可跨产品复用、应由已有 July 包承担，或现有包的公开契约/生命周期语义确实缺失，判定为 `July Framework 缺失`。
+执行前读取 [第一版产物契约](references/artifact-contract.md)，然后：
 
-出现疑似可复用能力缺失时才读取 [框架能力缺口 Gate](references/framework-gap-gate.md)。判定为框架缺失后必须立即停止产品流程，不得在产品代码中复制框架能力、增加临时兼容层，或用项目私有抽象绕过。形成并讨论补充方案后执行 `block`；只有 Gate 的恢复条件满足后才能 `resume`。
+1. 从策划案生成或更新 `GDD.md`。
+2. 将产品拆成能够独立演示和验收的功能切片。
+3. 生成 `MDD/骨架.md`。
+4. 为每个功能切片生成 `MDD/F<N>_<功能>.md`。
+5. 所有新生成 MDD使用 `状态：规划`。
+6. 本动作只生成设计文档，不实现代码。
 
-## 阶段
+已有 GDD或 MDD时先读取并保留仍然成立的事实；除非用户明确要求替换，不要无条件覆盖已有设计和实现记录。
 
-| 阶段 | 主要产物 | 执行前读取 |
-|---|---|---|
-| `gdd` | `GDD.md` | [GDD](references/stages/gdd.md) |
-| `gdd_review` | `QA_GDD.md` | [GDD 审查](references/stages/gdd-review.md) |
-| `mdd` | MDD 索引、模块、进度和按需资源清单 | [MDD](references/stages/mdd.md)；仅在需要配置表时读取 [Luban 流程](references/luban-workflow.md) |
-| `implementation` | 代码、配置及验证证据 | [实现](references/stages/implementation.md) |
-| `validation` | `QA/验收报告.md` | [验收](references/stages/validation.md) |
+### 按 MDD实现
 
-上游设计发生变化时，读取 [变更同步](references/stages/change-sync.md)，先修改事实所属文档，再用 `reopen` 重开最早受影响阶段。
+仅在用户手动指定一份 MDD时执行。MDD必须位于当前工作区 `DesignDoc/<项目>/MDD/`，不要根据功能名猜一份文件代替用户选择。
 
-## 状态命令
+执行顺序：
 
-使用 Python 3 执行：
+1. 读取策划案、GDD、指定 MDD和当前工程。
+2. 检查 MDD对应的 GDD行为是否足够明确；存在影响实现的产品问题时先询问用户。
+3. 根据当前代码、实际安装的 July包和 Luban配置校准原 MDD。
+4. 满足产物契约后，将 MDD更新为 `状态：可实现`。
+5. 只实现指定 MDD的范围。
+6. 按需读取 [Luban工作流](references/luban-workflow.md)；生成或修改代码时读取 [代码质量规则](references/code-quality.md)。
+7. 执行 MDD约定的编译、测试和运行验证。
+8. 把实际修改、设计差异和验证结果写回同一份 MDD；通过后更新为 `状态：已完成`。
 
-```text
-python scripts/flow.py init --product <项目名>
-python scripts/flow.py status --product <项目名>
-python scripts/flow.py start --product <项目名> --stage <阶段>
-python scripts/flow.py complete --product <项目名> --stage <阶段> --evidence <Unity项目相对路径> [--evidence <Unity项目相对路径> ...]
-python scripts/flow.py reopen --product <项目名> --stage <阶段> --reason <原因>
-python scripts/flow.py block --product <项目名> --stage <阶段> --reason <原因> --proposal <Unity项目相对路径>
-python scripts/flow.py resume --product <项目名> --stage <阶段> --resolution <完成说明> [--resolution-kind framework_update|scope_change] --evidence <Unity项目相对路径> [--evidence <Unity项目相对路径> ...]
-python scripts/flow.py validate --product <项目名>
-```
+验证失败时保留当前状态并记录失败证据，继续修复当前 MDD范围内的问题，不报告伪造成功。
 
-`block` 只接受 `框架缺口/FG-*.md` 且 Gate 为 `BLOCKED` 的方案；已阻塞阶段可再次执行 `block` 来缩小或修订仍然成立的 blocker，状态保持阻塞并记录 `reblock` 历史。解除阻塞必须使用 `resume`，且同一方案 Gate 已改为 `RESOLVED`。默认 `framework_update` 至少提交方案、`Packages/manifest.json` 和框架/集成验证；`scope_change` 只用于用户明确移除当前需求，并至少提交方案、更新后的 `GDD.md` 和 `QA_GDD.md`。命令失败时修复错误原因，不要编辑状态文件绕过阶段门禁。
+## 没有指定 MDD时
 
-## 核心约束
+如果 GDD和 MDD已经存在，而用户只说“继续制作”但没有指定 MDD，列出 `MDD/`下可选文件及其状态，请用户选择。不要自动决定下一功能。
 
-- `策划案.md` 定义产品目标、范围、约束和待确认事项；GDD 定义玩家可观察行为；MDD 定义技术实现契约。
-- GDD 不写代码、类名或文件路径；实现不得擅自增加 MDD 未定义的功能。
-- 使用具体 July 接口前，先检查目标项目实际安装的包和现有组合方式。
-- 缺少应由 July Framework 提供的可复用能力时，必须阻塞并先补框架；不得把框架缺失降级为产品内实现。
-- 游戏业务按实际责任选择 JulyArch 的 `Store`、`System`、`Procedure`、`View`；简单类不强套角色，符合角色语义的业务也不得刻意绕开框架。
-- Luban 的源表和 schema 是输入；生成的 JSON/C# 是输出，不直接编辑。
-- 代码生成与审查遵循 [代码生成质量规则](references/code-quality.md)：只在真实可空边界判空；内部必需依赖和已建立的不变量违约时快速失败，不用静默返回、默认值或多余空检查掩盖问题。
-- 阶段只有在产物真实存在且证据通过时才能完成。
+## 第一版边界
 
-按需复制 `assets/templates/` 中的模板，删除无关可选章节和模板说明；只有明确未决问题可以保留 `[待确认]`。
+- 不创建 `.july-ai-workflow.json`或 `工作流状态.md`。
+- 不维护全局阶段、自动续跑、依赖图或历史状态。
+- 不创建独立 GDD审查报告或验收报告；验证结果写回指定 MDD。
+- 不自动创建 Unity项目、设计目录或策划案。
+- 不在信息不足时用推测补出可实现 MDD。
+- 不为未被指定的 MDD实现代码。

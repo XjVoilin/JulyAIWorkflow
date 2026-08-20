@@ -1,6 +1,6 @@
 interface:
   display_name: "July 游戏研发流程"
-  short_description: "从 DesignDoc 中的策划案推进 July 游戏研发流程"
-  default_prompt: "使用 $july-game-pipeline 继续我的游戏项目制作。"
+  short_description: "从策划案生成设计，并按指定MDD实现游戏功能"
+  default_prompt: "使用 $july-game-pipeline 根据策划案生成我的项目GDD和功能MDD。"
 policy:
   allow_implicit_invocation: false
