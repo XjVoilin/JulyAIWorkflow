@@ -26,11 +26,12 @@ description: 仅在用户显式调用本 Skill 时，从当前 July/Luban Unity 
 
 1. 从策划案生成或更新 `Design/Docs/GDD.md`。GDD 按玩家行为描述完整功能和流程，不写技术目录或类名。
 2. 生成或更新 `Design/Docs/MDD/骨架.md`，只记录模块图、依赖、计划中的 View/流程和阶段门禁。
-3. 按单一业务所有权拆分模块，生成 `Design/Docs/MDD/Modules/M<N>_<模块>.md`。
-4. 不把 `Content`、`Application`、`Domain`、`Models` 等技术或宽泛总称自动当作模块。
-5. 不在首次设计生成时创建 View、流程接线、代码、Prefab、配置表或测试代码。
-6. 工具链或发布验收确属 GDD 范围时，可分别生成 `Tooling/` 或 `Release/` MDD。
-7. 所有新 MDD 使用 `状态：规划`；架构基线在完成本次文档修改后最多为 `待人工审查`。
+3. 从业务能力候选出发，以状态所有权、生命周期、非平凡规则、提交一致性或可复用复杂度作为模块成立依据；通过模块成立检查后，生成 `Design/Docs/MDD/Modules/M<N>_<模块>.md`。
+4. 领域名词、Luban 表、DTO、枚举和简单映射不自动成为模块；没有独立行为的配置事实归入第一个负责解释和消费它们的能力模块。
+5. 不把 `Content`、`Application`、`Domain`、`Models` 等技术或宽泛总称自动当作模块，也不要求每个模块必须拥有 Store 或 System。
+6. 不在首次设计生成时创建 View、流程接线、代码、Prefab、配置表或测试代码。
+7. 工具链或发布验收确属 GDD 范围时，可分别生成 `Tooling/` 或 `Release/` MDD。
+8. 所有新 MDD 使用 `状态：规划`；架构基线在完成本次文档修改后最多为 `待人工审查`。
 
 已有 GDD 或 MDD 时先读取并保留仍然成立的事实。需要从旧的功能切片 MDD 迁移时，把产品行为留在 GDD，把技术实施责任迁入模块、View、流程、工具链或发布 MDD；不要让两套可执行 MDD 同时存在并产生歧义。
 

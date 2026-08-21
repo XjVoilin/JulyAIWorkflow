@@ -9,6 +9,7 @@ This repository defines a reusable workflow for projects built on Template_2022.
 - Every MDD declares one type: `架构基线`, `模块`, `UI视图`, `2D视图`, `流程接线`, `工具链`, or `发布验收`.
 - Keep progress in the selected MDD using `规划`, `可实现`, `待人工审查`, and `已确认`. AI may advance work only through `待人工审查`; `已确认` requires explicit user confirmation. Do not introduce a central state file or state script in the first version.
 - Generate the architecture baseline and module MDDs first. Create view MDDs only after their module dependencies are confirmed, and flow MDDs only after their module and view dependencies are confirmed.
+- Generate a module MDD only for a meaningful business capability: it must own state or lifecycle, hide non-trivial rules, define a consistency/commit boundary, or concentrate complexity used by real callers. A domain noun, Luban table, DTO, enum, or simple mapping is not automatically a module. A deep pure-rule module may legitimately use no JulyArch role.
 - Generated Luban C#/JSON is never an authoring surface.
 - Before product implementation, audit the exact pinned July capabilities. Reuse a capability only when its semantics and lifecycle match; reuse a lower-level part for partial matches; implement product behavior for low matches. Do not force framework usage.
 - Product gameplay may use concrete JulyArch `Store`, `System`, `Procedure`, and `View` roles. Choose by responsibility, do not create module-level `Ixxx` interfaces, and do not force simple classes into framework roles.

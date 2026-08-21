@@ -1,6 +1,6 @@
 # July AI Workflow
 
-面向已经创建的 July Framework + Luban Unity 项目，通过 Codex 插件把策划案转换为 GDD、架构基线和模块 MDD，再按“模块 → View → 流程接线”的顺序渐进实现。
+面向已经创建的 July Framework + Luban Unity 项目，通过 Codex 插件把策划案转换为 GDD、架构基线和业务能力 MDD，再按“模块 → View → 流程接线”的顺序渐进实现。
 
 第一版不维护中央状态，不自动决定下一项，也不把 AI 的完成结论当作用户确认。
 
@@ -41,7 +41,7 @@ Design/Docs/
     └── Release/
 ```
 
-目录按需创建。首次只创建骨架、模块和 GDD 明确需要的工具链/发布 MDD，不提前创建空 View 或流程文档。
+目录按需创建。首次只为拥有状态、生命周期、非平凡规则、提交边界或真实复用价值的业务能力创建模块 MDD；配置、DTO、枚举和简单映射不会独立成模块。模块可以没有 Store/System。首次不提前创建空 View 或流程文档。
 
 每份 MDD 声明类型，并使用：
 
