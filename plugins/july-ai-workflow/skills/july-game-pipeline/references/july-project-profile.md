@@ -44,7 +44,7 @@ Assets/Game/Scripts/Runtime/
 
 Do not add a project-name directory, product-name umbrella, `Application`, `Domain`, or `Models` layer beneath `Runtime`. Do not add a broad `Content` module. A different layout is allowed only when higher-priority project evidence establishes it; record that evidence in the selected MDD.
 
-This host default does not authorize speculative files. Module implementation creates only its selected module subtree. View directories are created later by the View stage.
+Each `Modules/<业务模块>/` subtree represents one stable, independently nameable project capability. It contains only the JulyArch roles and ordinary internal types that the capability actually needs; a module may be Store-only, System-only, Procedure-only, mixed, or entirely ordinary C# types. This host default does not authorize speculative files. Module implementation creates only its selected module subtree, and View directories are created only after all module MDDs have been implemented, verified, and confirmed.
 
 ## Framework capability gap
 

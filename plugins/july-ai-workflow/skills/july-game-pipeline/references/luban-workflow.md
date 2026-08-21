@@ -29,6 +29,14 @@ When the project uses bilingual workbook names and no stronger convention exists
 
 When a source workbook is renamed, update `__tables__.xlsx` and every maintained source reference in the same change. Treat successful full generation as the validation that the new path is authoritative.
 
+## Generation timing and ownership
+
+- Do not create a table merely because a noun appears in GDD or a future View may need display data.
+- During the module stage, create a table only when a stable project capability owns its interpretation and the module's current intrinsic behavior requires that schema.
+- Leave fields whose meaning depends on later player-function integration until that integration is designed. Add presentation-only resources during the View stage.
+- Do not collect unrelated configuration into a broad `Content` module or give every workbook the same project/gameplay prefix.
+- When the schema is still speculative, record the open question in the selected MDD and stop instead of generating a workbook, C#, JSON, or diagnostic sidecar.
+
 ## Editing and generation
 
 - Use the project's approved workbook tooling. If a helper script exists, use it rather than inventing a new writer.
