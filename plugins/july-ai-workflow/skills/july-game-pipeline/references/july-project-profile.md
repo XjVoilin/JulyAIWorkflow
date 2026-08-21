@@ -19,7 +19,7 @@ July Framework packages own reusable capability implementations and their packag
 - provider and platform adapter selection;
 - launch composition and business registration;
 - project configuration and Luban schemas/data;
-- scenes, assets, gameplay, product tests, and build policy.
+- scenes, assets, gameplay, product verification, and build policy.
 
 Target-project gameplay may and should use JulyArch roles when their semantics fit:
 
@@ -31,6 +31,20 @@ Target-project gameplay may and should use JulyArch roles when their semantics f
 Do not force a simple class into a JulyArch role when it needs none of those semantics. Conversely, do not avoid JulyArch for stateful, lifecycle-managed, orchestrating, or scene-bound business responsibilities that match a role.
 
 Keep project-specific behavior in the target project even when it uses JulyArch. Move code into `JulyFramework` only when it is a reusable capability with a stable cross-product contract and package-level tests. Do not duplicate an installed July capability inside product code.
+
+## Default product source layout
+
+For an unmodified `Template_2022.3` host that already declares `Assets/Game/Scripts/Runtime/` as its product runtime root, keep product code directly under that root:
+
+```text
+Assets/Game/Scripts/Runtime/
+├── Modules/<业务模块>/
+└── Views/
+```
+
+Do not add a project-name directory, product-name umbrella, `Application`, `Domain`, or `Models` layer beneath `Runtime`. Do not add a broad `Content` module. A different layout is allowed only when higher-priority project evidence establishes it; record that evidence in the selected MDD.
+
+This host default does not authorize speculative files. Module implementation creates only its selected module subtree. View directories are created later by the View stage.
 
 ## Framework capability gap
 
@@ -44,7 +58,9 @@ Inspect the actual package README, public types, and adjacent template usage bef
 
 ## Verification levels
 
-- Product logic: focused EditMode tests where possible.
-- Scene, lifecycle, UI, and platform composition: Unity compilation plus focused PlayMode/integration evidence.
-- Package changes: package tests in JulyFramework and seed-template integration validation.
+The current workflow version does not generate target-project unit tests, PlayMode tests, test asmdefs, mocks, fakes, or fixtures.
+
+- Product modules: Unity compilation, Console review, configuration generation, existing debug/editor entrypoints, and repeatable manual evidence.
+- Scene, lifecycle, UI, and platform composition: Unity compilation, Prefab/Inspector validation, editor paths, and target-platform evidence.
+- Package changes: only after separate user authorization; follow the package repository's own test requirements.
 - Release: use the target project's July build pipeline and explicit platform/environment settings.
