@@ -53,7 +53,7 @@ WindowData 是展示快照，不是业务权威。框架时间等稳定事实直
 | Symbol ID | 类别 | 唯一 provider | 准确位置 | 消费 MDD |
 | --- | --- | --- | --- | --- |
 
-列出所有跨 MDD 使用的 C# 类型/成员/Event、Luban 类型、Window/Data、Prefab/资源合同和注册项。
+列出所有跨 MDD 使用的 C# 类型/成员/Event、Luban 类型、Window/Data、非 Prefab 资源合同和注册项。Prefab 资源名和预期路径只在各 View MDD 正文出现，不建立 provider。
 
 ## 7. 全产物实施依赖图
 
@@ -87,7 +87,8 @@ graph LR
 - 自有白名单产物；
 - 使用动作；
 - 所有消费 symbol 及 provider；
-- Unity/Luban/注册/Prefab 闭包；
+- Unity/Luban/注册/非 Prefab 资源闭包；
+- View 的 Prefab 人工交付说明及其不进入结构化合同、实施图和白名单的结论；
 - 不依赖后续 MDD 的独立验收结论。
 
 ## 10. 完整性结论

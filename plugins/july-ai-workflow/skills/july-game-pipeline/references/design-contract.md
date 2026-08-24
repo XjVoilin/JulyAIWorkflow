@@ -35,7 +35,7 @@ JSON 必须且只能包含以下字段：
 }
 ```
 
-`artifacts` 必须按 `implementationOrder` 排列。Module 与 View 可交错；同种 MDD 的编号按它在全局顺序中的出现次序从 001 连续递增。
+`artifacts` 必须按 `implementationOrder` 排列。Module 与 View 可交错；同种 MDD 的编号按它在全局顺序中的出现次序从 001 连续递增。Prefab 人工交付不属于 Artifact，也不进入 `implementationOrder`。
 
 ## Artifact 合同
 
@@ -66,9 +66,9 @@ JSON 必须且只能包含以下字段：
 }
 ```
 
-View 使用 `V001`、`kind: "view"` 和 `MDD/Views/`。路径全部相对产品根目录并使用 `/`。同一 MDD 的 `create`、`modify`、`generated` 不能重复；列表总和不能为空；同一产品文件不能由多份 MDD 声明创建。目标项目测试代码和 Editor 工具代码不能进入白名单；业务所需的作者数据、Prefab 与其他制作资产仍归实际 Module/View。
+View 使用 `V001`、`kind: "view"` 和 `MDD/Views/`。路径全部相对产品根目录并使用 `/`。同一 MDD 的 `create`、`modify`、`generated` 不能重复；列表总和不能为空；同一产品文件不能由多份 MDD 声明创建。目标项目测试代码、Editor 工具代码和 `.prefab` 文件不能进入白名单；业务所需的作者数据与非 Prefab 制作资产仍归实际 Module/View。Prefab 的资源名、预期路径、布局和接线要求只写在 View MDD 正文，交由人工 UI 阶段完成。
 
-`provides` 列出所有被其他 MDD 使用的手写类型/成员/Event、Luban 类型、Window/Data、Prefab/资源合同和注册项。`id` 是全局唯一稳定标识。`location` 是准确文件或作者源。
+`provides` 列出所有被其他 MDD 使用的手写类型/成员/Event、Luban 类型、Window/Data、非 Prefab 资源合同和注册项。`id` 是全局唯一稳定标识。`location` 是准确文件或作者源。不得以 `Prefab.*`、`kind: "Prefab"` 或 `.prefab` location 把人工交付重新放回结构化合同。
 
 `consumes` 逐项列出跨 MDD 消费：
 
@@ -81,7 +81,7 @@ View 使用 `V001`、`kind: "view"` 和 `MDD/Views/`。路径全部相对产品�
 }
 ```
 
-`dependencyType` 写明 `compile`、`luban-authoring`、`registration`、`prefab` 或 `runtime-contract`。每个跨 MDD 消费的 provider 必须进入 `dependsOn`；每个 `dependsOn` 又必须由消费符号或使用该 owner 的动作证明，不能保留模糊依赖。
+`dependencyType` 写明 `compile`、`luban-authoring`、`registration` 或 `runtime-contract`。Prefab 不是结构化依赖类型。每个跨 MDD 消费的 provider 必须进入 `dependsOn`；每个 `dependsOn` 又必须由消费符号或使用该 owner 的动作证明，不能保留模糊依赖。
 
 ## Action 合同
 

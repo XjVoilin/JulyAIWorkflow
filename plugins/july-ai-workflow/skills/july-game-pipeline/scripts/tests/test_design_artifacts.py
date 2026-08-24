@@ -289,6 +289,50 @@ class DesignArtifactTests(unittest.TestCase):
             any("目标测试文件" in error for error in design_artifacts.validate_schema(contract))
         )
 
+    def test_prefab_handoff_prose_is_allowed_but_contract_entries_are_rejected(self) -> None:
+        prefab_provides = (
+            {
+                "id": "Prefab.MapWindow",
+                "kind": "Resource",
+                "location": "Assets/Product/Res/MapWindow.asset",
+            },
+            {
+                "id": "Product.MapWindow",
+                "kind": "Prefab",
+                "location": "Assets/Product/Res/MapWindow.asset",
+            },
+            {
+                "id": "Product.MapWindow",
+                "kind": "Resource",
+                "location": "Assets/Product/Res/Prefabs/MapWindow.prefab",
+            },
+        )
+        for prefab_provide in prefab_provides:
+            with self.subTest(prefab_provide=prefab_provide):
+                contract = base_contract()
+                contract["artifacts"][1]["provides"][0] = prefab_provide
+                errors = "\n".join(design_artifacts.validate_schema(contract))
+                self.assertIn("结构化合同不能声明 Prefab 产物", errors)
+
+        contract = base_contract()
+        view = contract["artifacts"][1]
+        view["files"]["create"].append("Assets/Product/Res/Prefabs/MapWindow.prefab")
+        view["consumes"][0]["dependencyType"] = "prefab"
+        errors = "\n".join(design_artifacts.validate_schema(contract))
+        self.assertIn("白名单包含 Prefab 文件", errors)
+        self.assertIn("Prefab 不进入结构化依赖", errors)
+
+        stage = self.make_stage()
+        path = stage / "MDD" / "Views" / "V001_地图窗口.md"
+        text = path.read_text(encoding="utf-8")
+        handoff = (
+            "预期人工交付 `Assets/Product/Res/Prefabs/MapWindow.prefab`，"
+            "不进入结构化合同或本 MDD 白名单。"
+        )
+        text = text.replace("## 8. Prefab、场景与资源", "## 8. Prefab、场景与资源\n\n" + handoff)
+        path.write_text(text, encoding="utf-8")
+        design_artifacts.validate_artifacts(stage, "full", "staging", self.workspace)
+
     def test_persistence_type_is_rejected(self) -> None:
         contract = base_contract()
         contract["artifacts"][0]["provides"][0]["id"] = "Product.PuzzleSaveSystem"

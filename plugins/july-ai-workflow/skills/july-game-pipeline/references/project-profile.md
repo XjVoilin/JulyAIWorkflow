@@ -53,7 +53,7 @@
 - 每个主要角色的文件粒度；
 - Store/System 的注册位置与顺序；
 - Procedure 的构造、运行和依赖获取方式；
-- UI Window、WindowData、provider、资源地址和 Prefab 接线；
+- UI Window、WindowData、provider、资源地址和 Prefab 人工接线约定；该约定用于 View 正文交付说明，不进入结构化合同或实施白名单；
 - 事件订阅/取消订阅生命周期；
 - Luban 作者源、元表、生成代码/数据位置与全量生成入口；
 - 场景、Prefab、序列化引用、字体、图集和平台入口。
@@ -75,7 +75,8 @@ July 包只在用户另行授权且能力具有稳定跨产品合同时修改。
 - Unity 程序集编译与 Console；
 - Luban 全量生成与代表性产物检查；
 - Store/System/Procedure 注册和运行路径；
-- WindowData/Prefab/Inspector/GM 代表数据；
+- WindowData/GM 代表数据与脚本、配置、非 Prefab 资源检查；
+- Prefab 名称、预期路径、布局和接线要求的文档完整性；Prefab/Inspector 实物验收交给独立人工 UI 阶段；
 - 编辑器手工玩家流程；
 - 相关目标平台检查。
 

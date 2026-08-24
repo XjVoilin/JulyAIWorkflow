@@ -81,7 +81,7 @@ OwningSystem.PublicOperation(input)
 | --- | --- | --- |
 |  |  |  |
 
-每个产品符号都必须能在索引唯一提供表找到提供者。前置 MDD 必须位于全局实施顺序更早位置。不得依赖后续 Module、View、Luban Bean/枚举、WindowData、Event、Prefab 脚本或注册项。
+每个产品符号都必须能在索引唯一提供表找到提供者。前置 MDD 必须位于全局实施顺序更早位置。不得依赖后续 Module、View、Luban Bean/枚举、WindowData、Event 或注册项，也不得把 Prefab 脚本或资产声明为 MDD 依赖。
 
 确认本模块加入全产物依赖图后仍无环。若需要反向调用，重新检查事实、动作、导航或符号是否归错所有者。
 
@@ -304,14 +304,14 @@ Result Calculate(authoritativeInputA, authoredRowB)
 | --- | --- | --- | --- |
 |  |  |  |  |
 
-逐项覆盖：基类、成员签名中的类型、生成 Bean/枚举、事件、Window/WindowData、Prefab 脚本、注册项与作者源依赖。
+逐项覆盖：基类、成员签名中的类型、生成 Bean/枚举、事件、Window/WindowData、注册项与作者源依赖。Prefab 不属于结构化闭包。
 
 ### 闭包结论
 
 - 当前 MDD 白名单内文件一起创建后，不引用任何后续 MDD 产物；
 - Unity 编译不要求后续 Module 或 View 提供类型；
 - Luban 全量生成不要求后续 MDD 定义 Bean、枚举或表；
-- 当前验收不要求打开后续 Window/Prefab 或完成后续玩家流程；
+- 当前验收不要求打开后续 Window 或完成后续玩家流程，也不以任何 Prefab 作为前置；
 - 若任一条不能成立，停止定稿并重新设计责任或 MDD 边界。
 
 ## 15. 验收

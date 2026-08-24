@@ -21,11 +21,11 @@ python scripts/design_artifacts.py validate --source <当前产品>/Design/Docs 
 - 指定 MDD 存在于索引精确实施顺序，且它列出的全部前置 MDD 产物已经存在；
 - 业务事实权威来源唯一；
 - 使用的动作 ID、规范签名、失败合同和导航所有者与索引及其他 MDD 完全一致；
-- 每个产品类型、成员、生成类型、事件、Window/Data、Prefab 脚本和注册项都来自稳定宿主、自有白名单或更早 MDD；
+- 每个产品类型、成员、生成类型、事件、Window/Data 和注册项都来自稳定宿主、自有白名单或更早 MDD；
 - 全产物依赖方向与索引一致且无环；
 - 角色、数据结构、公共接口和核心伪代码足够具体；
 - Luban schema 已到字段、类型、约束、所有者、消费者和示例；
-- 注册/初始化、Prefab/场景接线和文件白名单准确；
+- 注册/初始化、场景接线和文件白名单准确；View 的 Prefab 人工交付说明完整且 `.prefab` 不在结构化合同或白名单；
 - 验收路径可在当前工程执行。
 
 缺少会改变实现的内容时停止，说明具体设计缺口，与用户讨论并更新设计。若 MDD 引用了后续产物、动作合同冲突或按索引顺序仍不能独立编译，明确判定“完整设计闭包审计失败”；不得只建议先实施另一 MDD 来掩盖设计错误。
@@ -39,7 +39,7 @@ python scripts/design_artifacts.py validate --source <当前产品>/Design/Docs 
 - MDD“新增”和“修改”明确列出的产品文件；
 - MDD 明确声明的 Luban 作者源；
 - 运行全量生成后由该 schema 合理变化的派生输出；
-- MDD 明确列出的注册、配置、Prefab、场景或本地化文件。
+- MDD 明确列出的注册、配置、场景或本地化文件。
 
 禁止：
 
@@ -48,6 +48,7 @@ python scripts/design_artifacts.py validate --source <当前产品>/Design/Docs 
 - 用 TODO、默认值、空方法或伪成功代替当前责任；
 - 生成目标项目测试代码；
 - 接入持久化系统、保存/读取调用、跨启动恢复、保存失败或任何持久化占位。
+- 创建或修改 Prefab、节点绑定、图片挂载和 Prefab Inspector 接线。
 
 发现白名单错误时先改设计，不先改产品。
 
@@ -87,7 +88,8 @@ Store 只注册为运行时角色，不接入持久化系统。当前流程没�
 8. 按钮直接调用 MDD 指定的业务 System；
 9. 纯表现导航直接调用 UISystem；
 10. 业务成功导航留在 System/Procedure；
-11. 完成 Window provider/config、Prefab、Inspector、资源和本地化接线。
+11. 完成 Window provider/config、非 Prefab 资源和本地化接线；
+12. 核对 MDD 的 Prefab 资源名、预期路径、布局与人工接线说明，但不创建、修改或打开 Prefab。Prefab 未由人工交付时不打开 Window、不增加空界面或伪成功路径。
 
 Window 不直接读取 Store/System 组装显示数据，不写 Store，不携带数据发布或消费变化事件。GameView 按其 MDD 具体合同实施，不机械复制 WindowData 模式。
 
@@ -134,10 +136,11 @@ Window 不直接读取 Store/System 组装显示数据，不写 Store，不携�
 ### View 附加验证
 
 - WindowData 构造产生正确首屏数据；
-- GM/编辑器可以创建 Data、赋值并打开 Window；
+- GM/编辑器可以创建 Data、赋值并检查展示快照；只有已存在人工 Prefab 时才可另行打开 Window，该结果不属于本 MDD 自动验收；
 - 空事件触发正确的定向刷新；
 - 按钮调用、导航责任正确；
-- Prefab/Inspector/场景/资源接线正确；
+- 场景与非 Prefab 资源接线正确；
+- Prefab 名称、预期路径、布局和人工接线说明完整，实际文件差异不含 `.prefab`；
 - 目标分辨率和手工交互通过；
 - 相关平台路径通过（若 MDD 要求）。
 
@@ -152,6 +155,7 @@ Window 不直接读取 Store/System 组装显示数据，不写 Store，不携�
 - 完成的业务与视觉行为；
 - 执行的验证及结果；
 - 需要用户在 Unity/设备中完成的验证；
+- 独立人工 UI 阶段仍需完成的 Prefab 制作与可视化验收；
 - 若无剩余事项，明确本 MDD 已实施完成。
 
 不写工作流状态，不自动开始下一份 MDD。

@@ -150,7 +150,6 @@ DEPENDENCY_TYPES = {
     "compile",
     "luban-authoring",
     "registration",
-    "prefab",
     "runtime-contract",
 }
 TEST_DIRECTORY_NAMES = {"test", "tests", "mocks", "fakes", "fixtures"}
@@ -380,6 +379,16 @@ def validate_schema(contract: Any) -> list[str]:
                 continue
             for key in PROVIDE_KEYS:
                 require_string(provide[key], f"{provide_label}.{key}", errors)
+            if all(isinstance(provide.get(key), str) for key in PROVIDE_KEYS):
+                is_prefab = (
+                    provide["kind"].casefold() == "prefab"
+                    or provide["id"].casefold().startswith("prefab.")
+                    or PurePosixPath(provide["location"]).suffix.casefold() == ".prefab"
+                )
+                if is_prefab:
+                    errors.append(
+                        f"{artifact_id} 结构化合同不能声明 Prefab 产物：{provide['id']}"
+                    )
             symbol = provide["id"]
             if isinstance(symbol, str):
                 if symbol in provider_by_symbol:
@@ -399,10 +408,13 @@ def validate_schema(contract: Any) -> list[str]:
                 continue
             for key in CONSUME_KEYS:
                 require_string(consume[key], f"{consume_label}.{key}", errors)
-            if isinstance(consume["dependencyType"], str) and consume["dependencyType"] not in DEPENDENCY_TYPES:
-                errors.append(
-                    f"{consume_label}.dependencyType 必须是 {sorted(DEPENDENCY_TYPES)} 之一"
-                )
+            if isinstance(consume["dependencyType"], str):
+                if consume["dependencyType"].casefold() == "prefab":
+                    errors.append(f"{consume_label} 的 Prefab 不进入结构化依赖")
+                elif consume["dependencyType"] not in DEPENDENCY_TYPES:
+                    errors.append(
+                        f"{consume_label}.dependencyType 必须是 {sorted(DEPENDENCY_TYPES)} 之一"
+                    )
             symbol = consume["symbol"]
             if isinstance(symbol, str) and symbol in seen_consumes:
                 errors.append(f"{artifact_id} 重复消费产品符号：{symbol}")
@@ -421,6 +433,8 @@ def validate_schema(contract: Any) -> list[str]:
                         errors.append(f"{artifact_id} 白名单包含目标测试文件：{value}")
                     if "/editor/" in lowered and PurePosixPath(value).suffix.lower() in {".cs", ".asmdef"}:
                         errors.append(f"{artifact_id} 白名单包含 Editor 工具代码：{value}")
+                    if PurePosixPath(value).suffix.casefold() == ".prefab":
+                        errors.append(f"{artifact_id} 白名单包含 Prefab 文件：{value}")
                     if group == "create":
                         normalized_key = value.casefold()
                         previous = creator_by_path.get(normalized_key)

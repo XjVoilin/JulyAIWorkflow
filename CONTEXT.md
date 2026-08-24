@@ -24,7 +24,7 @@ A player-visible screen or visual feature. UI Windows and world/scene Views are 
 The full implementation contract for one business module: responsibility, facts, roles, data structures, interfaces, algorithms, dependencies, consumers, invariants, configuration, registration, exact file whitelist, and acceptance.
 
 **View MDD**
-The full implementation and production contract for one screen or visual feature: visible facts, interactions, Data design, partial refreshes, empty notification events, navigation, Prefab/scene wiring, exact file whitelist, and acceptance.
+The implementation contract for one screen or visual feature: visible facts, interactions, Data design, partial refreshes, empty notification events, navigation, non-Prefab resources, exact file whitelist, and automated acceptance. It also records the expected Prefab name, path, layout, binding, and manual acceptance as a handoff outside the structured contract and implementation flow.
 
 **Store**
 The authoritative owner of controlled runtime business state. Reads are public; mutations are restricted to the owning module's Systems/Procedures. It publishes an empty business event only after a consistent mutation completes.
@@ -54,10 +54,10 @@ The complete list of product files an MDD may create or modify. Any additional f
 The single authoritative row for one atomic player action: ID, owner, canonical signature, precondition, success/failure, and navigation owner. Every Module/View occurrence references it exactly.
 
 **product symbol provider**
-The one MDD that creates a handwritten type/member/event, Luban generated type, Window/Data, Prefab script, resource contract, or registration item used by other MDDs.
+The one MDD that creates a handwritten type/member/event, Luban generated type, Window/Data, non-Prefab resource contract, or registration item used by other MDDs. Prefabs never become product symbols or providers.
 
 **MDD implementation closure**
-The guarantee that one MDD can be implemented, compiled, and accepted using only the stable host, fixed package APIs, its own whitelist, and outputs from earlier MDDs in the global topological order.
+The guarantee that one MDD's declared code, configuration, registration, and non-Prefab resources can be implemented, compiled, and automatically accepted using only the stable host, fixed package APIs, its own whitelist, and outputs from earlier MDDs in the global topological order. Prefab production and visual acceptance remain a separate manual UI handoff.
 
 **structured design contract**
 The machine-readable JSON authority for the complete artifact list, canonical actions, product-symbol providers and consumers, dependency evidence, implementation order, and exact file whitelists. It is created in OS temp, embedded completely in the index, and projected into each MDD.
