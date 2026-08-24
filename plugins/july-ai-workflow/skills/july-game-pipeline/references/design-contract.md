@@ -8,18 +8,18 @@
 
 ```text
 python scripts/design_artifacts.py create-stage --workspace <产品根目录>
-python scripts/design_artifacts.py validate --source <暂存 Design/Docs 根目录> --mode partial --surface staging
-python scripts/design_artifacts.py validate --source <暂存 Design/Docs 根目录> --mode full --surface staging
+python scripts/design_artifacts.py validate --source <暂存 Design/Docs 根目录> --mode partial --surface staging --workspace <产品根目录>
+python scripts/design_artifacts.py validate --source <暂存 Design/Docs 根目录> --mode full --surface staging --workspace <产品根目录>
 python scripts/design_artifacts.py validate --source <正式 Design/Docs 根目录> --mode full --surface published
 python scripts/design_artifacts.py publish --staging <暂存 Design/Docs 根目录> --workspace <产品根目录>
 python scripts/design_artifacts.py discard-stage --staging <本轮暂存目录>
 ```
 
-`create-stage` 返回唯一系统临时目录。只在该目录生成 `.july-design-contract.json`、`GDD.md`、`MDD/索引.md`、`MDD/Modules/*.md` 和 `MDD/Views/*.md`。
+`create-stage` 返回唯一系统临时目录，并写入 `.july-design-stage.json`，绑定产品根目录、策划案摘要和 Unity 项目版本。它只是本次事务的边界证明，不记录进度或工作流状态，不发布到产品。只在该目录生成 `.july-design-contract.json`、`GDD.md`、`MDD/索引.md`、`MDD/Modules/*.md` 和 `MDD/Views/*.md`。
 
-`partial` 验证完整合同及已经生成的文档，允许合同中声明的部分 MDD 尚未出现。`full` 要求所有声明文件存在。`staging` 强制独立 JSON 存在并与索引一致；`published` 强制正式目录不存在独立 JSON。`publish` 会先做完整验证，把正式 `Design/Docs` 复制为同卷候选目录，只替换其中的 GDD/MDD、清除遗留临时合同，再以目录交换发布；普通失败会恢复旧设计。禁止手工逐文件发布。
+`partial` 验证完整合同及已经生成的文档，允许合同中声明的部分 MDD 尚未出现。`full` 要求所有声明文件存在。`staging` 强制独立合同存在并与索引一致，同时核对暂存区确实属于 `--workspace` 且策划案、Unity 版本没有变化；`published` 强制正式目录不存在独立合同或暂存元数据。`publish` 会先做完整验证，把正式 `Design/Docs` 复制为同卷候选目录，只替换其中的 GDD/MDD、清除遗留临时合同，再以目录交换发布；普通失败会恢复旧设计。禁止手工逐文件发布。
 
-`discard-stage` 只接受由 `create-stage` 创建、位于系统临时目录且名称以 `july-design-` 开头的目录。验证或发布未完成时也应清理本轮暂存区；不要删除无法证明属于本轮的目录。
+`discard-stage` 只接受由 `create-stage` 创建、位于系统临时目录、名称以 `july-design-` 开头且包含有效绑定元数据的目录。验证或发布未完成时也应清理本轮暂存区；不要删除无法证明属于本轮的目录。
 
 ## 顶层合同
 
@@ -66,7 +66,7 @@ JSON 必须且只能包含以下字段：
 }
 ```
 
-View 使用 `V001`、`kind: "view"` 和 `MDD/Views/`。路径全部相对产品根目录并使用 `/`。同一 MDD 的 `create`、`modify`、`generated` 不能重复；列表总和不能为空。目标项目测试代码和 Editor 工具代码不能进入白名单；业务所需的作者数据、Prefab 与其他制作资产仍归实际 Module/View。
+View 使用 `V001`、`kind: "view"` 和 `MDD/Views/`。路径全部相对产品根目录并使用 `/`。同一 MDD 的 `create`、`modify`、`generated` 不能重复；列表总和不能为空；同一产品文件不能由多份 MDD 声明创建。目标项目测试代码和 Editor 工具代码不能进入白名单；业务所需的作者数据、Prefab 与其他制作资产仍归实际 Module/View。
 
 `provides` 列出所有被其他 MDD 使用的手写类型/成员/Event、Luban 类型、Window/Data、Prefab/资源合同和注册项。`id` 是全局唯一稳定标识。`location` 是准确文件或作者源。
 

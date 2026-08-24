@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -11,14 +12,23 @@ import shutil
 import sys
 import tempfile
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
 
 SCHEMA_VERSION = 1
 CONTRACT_FILE = ".july-design-contract.json"
+STAGE_META_FILE = ".july-design-stage.json"
 INDEX_BLOCK = "july-design-contract"
 MDD_BLOCK = "july-mdd-contract"
+STAGE_META_KEYS = {
+    "schemaVersion",
+    "workspace",
+    "planningSha256",
+    "projectVersion",
+    "createdAtUtc",
+}
 
 TOP_LEVEL_KEYS = {
     "schemaVersion",
@@ -124,17 +134,27 @@ UNRESOLVED_PATTERNS = (
     re.compile(r"<(?:逐个|玩家|能力|视觉功能|MDD|业务能力)[^>\n]*>"),
 )
 PERSISTENCE_PATTERNS = (
-    re.compile(r"\b(?:SaveAsync|LoadAsync|Repository)\b", re.IGNORECASE),
-    re.compile(r"持久化注册|读取存档|保存存档|存档读取|跨启动恢复|存档迁移|保存失败"),
+    re.compile(
+        r"\b(?:SaveAsync|LoadAsync|\w*Repository|\w*SaveSystem|\w*LoadSystem|"
+        r"Persistence|Persistent|Persistable)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(r"存档|持久化|跨启动|本地存储|服务器存储|云存档"),
 )
-NON_BUSINESS_TITLE = re.compile(r"工具|验证|验收|测试|发布|生成器|编辑器")
-FORBIDDEN_FILE_PARTS = (
-    "/tests/",
-    "test.asmdef",
-    "/mocks/",
-    "/fakes/",
-    "/fixtures/",
+NON_BUSINESS_TITLE = re.compile(
+    r"验收|验证器|编辑器|(?:测试|发布|验证)(?:工具|流程|管线|系统)|"
+    r"(?:工具|流程|管线)(?:验证|发布|测试)"
 )
+ACTION_KINDS = {"business", "navigation", "view-local"}
+DEPENDENCY_TYPES = {
+    "compile",
+    "luban-authoring",
+    "registration",
+    "prefab",
+    "runtime-contract",
+}
+TEST_DIRECTORY_NAMES = {"test", "tests", "mocks", "fakes", "fixtures"}
+TEST_FILE_STEM = re.compile(r"(?i:^test)|(?:Test|Tests)$|(?i:[._-]tests?$)")
 
 
 class ContractFailure(Exception):
@@ -144,7 +164,10 @@ class ContractFailure(Exception):
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8-sig")
+    try:
+        return path.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeError) as exc:
+        raise ContractFailure([f"无法读取文本文件：{path}：{exc}"]) from exc
 
 
 def load_json(path: Path) -> Any:
@@ -152,6 +175,79 @@ def load_json(path: Path) -> Any:
         return json.loads(read_text(path))
     except (OSError, json.JSONDecodeError) as exc:
         raise ContractFailure([f"无法读取 JSON：{path}：{exc}"]) from exc
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def path_is_link(path: Path) -> bool:
+    is_junction = getattr(os.path, "isjunction", lambda _: False)
+    return path.is_symlink() or is_junction(path)
+
+
+def tree_contains_links(root: Path) -> bool:
+    if path_is_link(root):
+        return True
+    pending = [root]
+    while pending:
+        current = pending.pop()
+        with os.scandir(current) as entries:
+            for entry in entries:
+                path = Path(entry.path)
+                if path_is_link(path):
+                    return True
+                if entry.is_dir(follow_symlinks=False):
+                    pending.append(path)
+    return False
+
+
+def is_target_test_path(value: str) -> bool:
+    path = PurePosixPath(value)
+    lowered_parts = [part.casefold() for part in path.parts]
+    if any(part in TEST_DIRECTORY_NAMES for part in lowered_parts[:-1]):
+        return True
+    return bool(TEST_FILE_STEM.search(path.stem))
+
+
+def load_stage_metadata(staging: Path, workspace: Path | None = None) -> dict[str, Any]:
+    temp_root = Path(tempfile.gettempdir()).resolve()
+    if staging.parent != temp_root or not staging.name.startswith("july-design-"):
+        raise ContractFailure([f"暂存目录不是本工具创建的系统临时目录：{staging}"])
+    metadata_path = staging / STAGE_META_FILE
+    if not metadata_path.is_file():
+        raise ContractFailure([f"暂存目录缺少工作区绑定信息：{metadata_path}"])
+    metadata = load_json(metadata_path)
+    errors: list[str] = []
+    if not require_exact_keys(metadata, STAGE_META_KEYS, "暂存区元数据", errors):
+        raise ContractFailure(errors)
+    if metadata["schemaVersion"] != SCHEMA_VERSION:
+        errors.append(f"暂存区 schemaVersion 必须为 {SCHEMA_VERSION}")
+    for key in STAGE_META_KEYS - {"schemaVersion"}:
+        require_string(metadata[key], f"暂存区.{key}", errors)
+    if errors:
+        raise ContractFailure(errors)
+    if workspace is not None:
+        workspace = validate_workspace(workspace)
+        expected_workspace = os.path.normcase(str(workspace))
+        actual_workspace = os.path.normcase(str(Path(metadata["workspace"]).resolve()))
+        if actual_workspace != expected_workspace:
+            errors.append(
+                f"暂存区属于其他工作区：{metadata['workspace']}，当前目标为 {workspace}"
+            )
+        planning = workspace / "Design" / "Docs" / "策划案.md"
+        if metadata["planningSha256"] != sha256_file(planning):
+            errors.append("策划案在暂存区创建后已经变化，必须重新讨论并创建暂存区")
+        project_version = read_text(workspace / "ProjectSettings" / "ProjectVersion.txt").strip()
+        if metadata["projectVersion"] != project_version:
+            errors.append("Unity 项目版本在暂存区创建后已经变化，必须重新创建暂存区")
+    if errors:
+        raise ContractFailure(errors)
+    return metadata
 
 
 def extract_block(text: str, language: str, source: Path) -> Any:
@@ -210,6 +306,12 @@ def require_string_list(value: Any, label: str, errors: list[str]) -> list[str]:
     return value
 
 
+def safe_string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str) and item]
+
+
 def validate_schema(contract: Any) -> list[str]:
     errors: list[str] = []
     if not require_exact_keys(contract, TOP_LEVEL_KEYS, "设计合同", errors):
@@ -233,6 +335,7 @@ def validate_schema(contract: Any) -> list[str]:
     artifact_by_id: dict[str, dict[str, Any]] = {}
     provider_by_symbol: dict[str, str] = {}
     action_by_id: dict[str, dict[str, Any]] = {}
+    creator_by_path: dict[str, str] = {}
 
     for index, artifact in enumerate(artifacts):
         label = f"artifacts[{index}]"
@@ -261,7 +364,7 @@ def validate_schema(contract: Any) -> list[str]:
         for field in ("dependsOn", "actionsOwned", "actionsUsed"):
             require_string_list(artifact[field], f"{artifact_id}.{field}", errors)
         if isinstance(artifact["actionsOwned"], list) and isinstance(artifact["actionsUsed"], list):
-            overlap = set(artifact["actionsOwned"]) & set(artifact["actionsUsed"])
+            overlap = set(safe_string_list(artifact["actionsOwned"])) & set(safe_string_list(artifact["actionsUsed"]))
             if overlap:
                 errors.append(f"{artifact_id} 不能同时拥有和消费同一动作：{sorted(overlap)}")
 
@@ -296,10 +399,15 @@ def validate_schema(contract: Any) -> list[str]:
                 continue
             for key in CONSUME_KEYS:
                 require_string(consume[key], f"{consume_label}.{key}", errors)
+            if isinstance(consume["dependencyType"], str) and consume["dependencyType"] not in DEPENDENCY_TYPES:
+                errors.append(
+                    f"{consume_label}.dependencyType 必须是 {sorted(DEPENDENCY_TYPES)} 之一"
+                )
             symbol = consume["symbol"]
-            if symbol in seen_consumes:
+            if isinstance(symbol, str) and symbol in seen_consumes:
                 errors.append(f"{artifact_id} 重复消费产品符号：{symbol}")
-            seen_consumes.add(symbol)
+            if isinstance(symbol, str):
+                seen_consumes.add(symbol)
 
         files = artifact["files"]
         if require_exact_keys(files, FILE_KEYS, f"{artifact_id}.files", errors):
@@ -309,10 +417,18 @@ def validate_schema(contract: Any) -> list[str]:
                 for file_index, value in enumerate(values):
                     normalized_relative_path(value, f"{artifact_id}.files.{group}[{file_index}]", errors)
                     lowered = f"/{value.lower().strip('/')}"
-                    if any(part in lowered for part in FORBIDDEN_FILE_PARTS):
+                    if is_target_test_path(value):
                         errors.append(f"{artifact_id} 白名单包含目标测试文件：{value}")
                     if "/editor/" in lowered and PurePosixPath(value).suffix.lower() in {".cs", ".asmdef"}:
                         errors.append(f"{artifact_id} 白名单包含 Editor 工具代码：{value}")
+                    if group == "create":
+                        normalized_key = value.casefold()
+                        previous = creator_by_path.get(normalized_key)
+                        if previous is not None and previous != artifact_id:
+                            errors.append(
+                                f"产品文件被多个 MDD 声明创建：{value} 同时属于 {previous} 和 {artifact_id}"
+                            )
+                        creator_by_path[normalized_key] = artifact_id
                 all_files.extend(values)
             if not all_files:
                 errors.append(f"{artifact_id} 的文件白名单不能为空")
@@ -337,7 +453,9 @@ def validate_schema(contract: Any) -> list[str]:
         if action_id in action_by_id:
             errors.append(f"动作 ID 重复：{action_id}")
         action_by_id[action_id] = action
-        if action["owner"] not in artifact_by_id:
+        if isinstance(action["kind"], str) and action["kind"] not in ACTION_KINDS:
+            errors.append(f"{action_id}.kind 必须是 {sorted(ACTION_KINDS)} 之一")
+        if isinstance(action["owner"], str) and action["owner"] not in artifact_by_id:
             errors.append(f"{action_id}.owner 不存在：{action['owner']}")
 
     if set(order) != set(artifact_by_id) or len(order) != len(artifact_by_id):
@@ -353,7 +471,7 @@ def validate_schema(contract: Any) -> list[str]:
             errors.append(f"{kind} 编号必须按全局拓扑序从 001 连续递增：{ids}")
 
     for artifact_id, artifact in artifact_by_id.items():
-        depends = artifact["dependsOn"] if isinstance(artifact["dependsOn"], list) else []
+        depends = safe_string_list(artifact["dependsOn"])
         for provider in depends:
             if provider == artifact_id:
                 errors.append(f"{artifact_id} 不能依赖自身")
@@ -362,17 +480,17 @@ def validate_schema(contract: Any) -> list[str]:
             elif order_index.get(provider, 10**9) >= order_index.get(artifact_id, -1):
                 errors.append(f"{artifact_id} 前向依赖 {provider}，实施顺序无闭包")
 
-        owned = set(artifact["actionsOwned"]) if isinstance(artifact["actionsOwned"], list) else set()
+        owned = set(safe_string_list(artifact["actionsOwned"]))
         expected_owned = {action_id for action_id, action in action_by_id.items() if action.get("owner") == artifact_id}
         if owned != expected_owned:
             errors.append(f"{artifact_id}.actionsOwned 与全局动作所有权不一致")
-        used = set(artifact["actionsUsed"]) if isinstance(artifact["actionsUsed"], list) else set()
+        used = set(safe_string_list(artifact["actionsUsed"]))
         for action_id in owned | used:
             if action_id not in action_by_id:
                 errors.append(f"{artifact_id} 引用不存在的动作：{action_id}")
         for action_id in used:
             owner = action_by_id.get(action_id, {}).get("owner")
-            if owner and owner != artifact_id and owner not in depends:
+            if isinstance(owner, str) and owner != artifact_id and owner not in depends:
                 errors.append(f"{artifact_id} 使用 {action_id}，但未依赖其所有者 {owner}")
 
         dependency_evidence: set[str] = set()
@@ -382,6 +500,8 @@ def validate_schema(contract: Any) -> list[str]:
                 continue
             symbol = consume["symbol"]
             provider = consume["provider"]
+            if not isinstance(symbol, str) or not isinstance(provider, str):
+                continue
             actual_provider = provider_by_symbol.get(symbol)
             if actual_provider is None:
                 errors.append(f"{artifact_id} 消费未声明提供者的产品符号：{symbol}")
@@ -397,7 +517,7 @@ def validate_schema(contract: Any) -> list[str]:
                 errors.append(f"{artifact_id}.consumes 只记录跨 MDD 消费，不能列自有符号：{symbol}")
         for action_id in used:
             owner = action_by_id.get(action_id, {}).get("owner")
-            if owner and owner != artifact_id:
+            if isinstance(owner, str) and owner != artifact_id:
                 dependency_evidence.add(owner)
         unsupported = set(depends) - dependency_evidence
         if unsupported:
@@ -421,12 +541,97 @@ def content_outside_exclusions(text: str) -> str:
     return "\n".join(kept)
 
 
-def validate_text(path: Path, text: str, headings: Iterable[str], errors: list[str]) -> None:
+def markdown_sections(text: str) -> list[tuple[int, str, str]]:
+    masked = re.sub(
+        r"```.*?```",
+        lambda match: "".join("\n" if char == "\n" else " " for char in match.group()),
+        text,
+        flags=re.DOTALL,
+    )
+    matches = list(re.finditer(r"^(#{1,6})[ \t]+(.+?)[ \t]*$", masked, re.MULTILINE))
+    sections: list[tuple[int, str, str]] = []
+    for index, match in enumerate(matches):
+        level = len(match.group(1))
+        end = len(text)
+        for following in matches[index + 1:]:
+            if len(following.group(1)) <= level:
+                end = following.start()
+                break
+        sections.append((level, match.group(2).strip(), text[match.end():end]))
+    return sections
+
+
+def normalized_heading(title: str) -> str:
+    return re.sub(r"^\d+(?:[.、]\d+)*[.、]?[ \t]*", "", title).strip()
+
+
+def meaningful_length(text: str) -> int:
+    without_fence_markers = re.sub(r"^```[^\n]*$", "", text, flags=re.MULTILINE)
+    return len(re.findall(r"[\w\u3400-\u9fff]", without_fence_markers, re.UNICODE))
+
+
+def validate_section_content(
+    path: Path,
+    sections: list[tuple[int, str, str]],
+    required_titles: Iterable[str],
+    exact: bool,
+    errors: list[str],
+) -> None:
+    selected: list[tuple[str, str]] = []
+    for required in required_titles:
+        if required.startswith("# "):
+            continue
+        if "结构化" in required and "合同" in required:
+            continue
+        title_without_marks = required.lstrip("# ")
+        candidates = [
+            (title, body)
+            for level, title, body in sections
+            if (f"{'#' * level} {title}" == required if exact else title_without_marks in normalized_heading(title))
+        ]
+        if not candidates:
+            continue
+        title, body = candidates[0]
+        selected.append((title, body))
+        stripped = re.sub(r"[`*_>#|\-]", "", body).strip()
+        if meaningful_length(body) < 12:
+            errors.append(f"{path} 章节内容过少：{title}")
+        if re.fullmatch(r"无[。.]?", stripped):
+            errors.append(f"{path} 章节不能只写“无”，必须说明为什么不适用：{title}")
+
+    normalized_bodies: dict[str, list[str]] = {}
+    for title, body in selected:
+        normalized = re.sub(r"[^\w\u3400-\u9fff]", "", body, flags=re.UNICODE).casefold()
+        if len(normalized) >= 12:
+            normalized_bodies.setdefault(normalized, []).append(title)
+    repeated = [titles for titles in normalized_bodies.values() if len(titles) >= 3]
+    if repeated:
+        errors.append(f"{path} 至少三个章节重复同一段正文：{repeated[0]}")
+
+
+def validate_text(
+    path: Path,
+    text: str,
+    headings: Iterable[str],
+    errors: list[str],
+    *,
+    gdd: bool = False,
+) -> None:
     if len(text.strip()) < 200:
         errors.append(f"文档为空或明显未完成：{path}")
-    for heading in headings:
-        if heading not in text:
-            errors.append(f"{path} 缺少必需标题：{heading}")
+    sections = markdown_sections(text)
+    if gdd:
+        actual = [normalized_heading(title) for _, title, _ in sections]
+        for heading in headings:
+            if not any(heading in title for title in actual):
+                errors.append(f"{path} 缺少必需 Markdown 标题：{heading}")
+        validate_section_content(path, sections, headings, False, errors)
+    else:
+        actual_lines = {f"{'#' * level} {title}" for level, title, _ in sections}
+        for heading in headings:
+            if heading not in actual_lines:
+                errors.append(f"{path} 缺少必需标题：{heading}")
+        validate_section_content(path, sections, headings, True, errors)
     body = strip_contract_blocks(text)
     for pattern in UNRESOLVED_PATTERNS:
         match = pattern.search(body)
@@ -439,13 +644,46 @@ def validate_text(path: Path, text: str, headings: Iterable[str], errors: list[s
             errors.append(f"{path} 在排除章节之外包含持久化设计：{match.group(0)}")
 
 
-def validate_artifacts(source: Path, mode: str, surface: str) -> dict[str, Any]:
+def require_body_terms(
+    path: Path,
+    body: str,
+    terms: Iterable[tuple[str, str]],
+    errors: list[str],
+) -> None:
+    seen: set[str] = set()
+    for label, term in terms:
+        if not term or term in seen:
+            continue
+        seen.add(term)
+        if term not in body:
+            errors.append(f"{path} 正文未引用{label}：{term}")
+
+
+def validate_artifacts(
+    source: Path,
+    mode: str,
+    surface: str,
+    workspace: Path | None = None,
+) -> dict[str, Any]:
+    source_was_link = path_is_link(source)
     source = source.resolve()
     errors: list[str] = []
     if not source.is_dir():
         raise ContractFailure([f"设计根目录不存在：{source}"])
-    if any(path.is_symlink() for path in source.rglob("*")):
+    if source_was_link or tree_contains_links(source):
         errors.append(f"设计目录不能包含符号链接：{source}")
+
+    metadata_path = source / STAGE_META_FILE
+    if surface == "staging":
+        if workspace is None:
+            errors.append("验证 staging 时必须提供 --workspace，以核对暂存区归属")
+        else:
+            try:
+                load_stage_metadata(source, workspace)
+            except ContractFailure as exc:
+                errors.extend(exc.errors)
+    elif metadata_path.exists():
+        errors.append(f"正式设计不能保留暂存区元数据：{metadata_path}")
 
     index_path = source / "MDD" / "索引.md"
     gdd_path = source / "GDD.md"
@@ -467,14 +705,17 @@ def validate_artifacts(source: Path, mode: str, surface: str) -> dict[str, Any]:
         staged_contract = load_json(contract_path)
         if staged_contract != contract:
             errors.append(f"{CONTRACT_FILE} 与索引中的结构化设计合同不一致")
-    errors.extend(validate_schema(contract))
+    schema_errors = validate_schema(contract)
+    errors.extend(schema_errors)
+    if schema_errors:
+        raise ContractFailure(errors)
     serialized_contract = json.dumps(contract, ensure_ascii=False)
     for pattern in PERSISTENCE_PATTERNS:
         match = pattern.search(serialized_contract)
         if match:
             errors.append(f"结构化设计合同包含持久化实施内容：{match.group(0)}")
     validate_text(index_path, index_text, INDEX_HEADINGS, errors)
-    validate_text(gdd_path, read_text(gdd_path), GDD_HEADINGS, errors)
+    validate_text(gdd_path, read_text(gdd_path), GDD_HEADINGS, errors, gdd=True)
 
     artifacts = contract.get("artifacts", []) if isinstance(contract, dict) else []
     expected_paths = {
@@ -498,6 +739,27 @@ def validate_artifacts(source: Path, mode: str, surface: str) -> dict[str, Any]:
         for action in contract.get("actions", [])
         if isinstance(action, dict)
     }
+    index_body = strip_contract_blocks(index_text)
+    index_terms: list[tuple[str, str]] = []
+    for artifact in artifacts:
+        if not isinstance(artifact, dict):
+            continue
+        for key, label in (("id", " MDD ID"), ("title", " MDD 标题"), ("path", " MDD 路径")):
+            value = artifact.get(key)
+            if isinstance(value, str):
+                index_terms.append((label, value))
+        for provide in artifact.get("provides", []):
+            if isinstance(provide, dict) and isinstance(provide.get("id"), str):
+                index_terms.append(("产品符号", provide["id"]))
+    for action in contract.get("actions", []):
+        if not isinstance(action, dict):
+            continue
+        if isinstance(action.get("id"), str):
+            index_terms.append(("动作 ID", action["id"]))
+        if isinstance(action.get("signature"), str):
+            index_terms.append(("动作签名", action["signature"]))
+    require_body_terms(index_path, index_body, index_terms, errors)
+
     for artifact in artifacts:
         if not isinstance(artifact, dict) or not isinstance(artifact.get("path"), str):
             continue
@@ -523,6 +785,23 @@ def validate_artifacts(source: Path, mode: str, surface: str) -> dict[str, Any]:
             signature = action.get("signature") if isinstance(action, dict) else None
             if isinstance(signature, str) and signature not in body:
                 errors.append(f"{path} 正文未逐字引用 {action_id} 的规范签名：{signature}")
+        body_terms: list[tuple[str, str]] = []
+        for dependency in artifact.get("dependsOn", []):
+            if isinstance(dependency, str):
+                body_terms.append(("依赖 MDD", dependency))
+        for provide in artifact.get("provides", []):
+            if isinstance(provide, dict) and isinstance(provide.get("id"), str):
+                body_terms.append(("提供符号", provide["id"]))
+        for consume in artifact.get("consumes", []):
+            if isinstance(consume, dict) and isinstance(consume.get("symbol"), str):
+                body_terms.append(("消费符号", consume["symbol"]))
+        files = artifact.get("files", {})
+        if isinstance(files, dict):
+            for group in FILE_KEYS:
+                for file_path in files.get(group, []):
+                    if isinstance(file_path, str):
+                        body_terms.append(("白名单路径", file_path))
+        require_body_terms(path, body, body_terms, errors)
 
     if errors:
         raise ContractFailure(errors)
@@ -531,14 +810,19 @@ def validate_artifacts(source: Path, mode: str, surface: str) -> dict[str, Any]:
 
 def validate_workspace(workspace: Path) -> Path:
     workspace = workspace.resolve()
-    required = (
+    required_directories = (
         workspace / "Assets",
         workspace / "Packages",
         workspace / "ProjectSettings",
+        workspace / "Design" / "Docs",
+    )
+    required_files = (
+        workspace / "Packages" / "manifest.json",
         workspace / "ProjectSettings" / "ProjectVersion.txt",
         workspace / "Design" / "Docs" / "策划案.md",
     )
-    missing = [str(path) for path in required if not path.exists()]
+    missing = [str(path) for path in required_directories if not path.is_dir()]
+    missing.extend(str(path) for path in required_files if not path.is_file())
     if missing:
         raise ContractFailure([f"当前工作区缺少必需项目输入：{path}" for path in missing])
     return workspace
@@ -547,8 +831,24 @@ def validate_workspace(workspace: Path) -> Path:
 def create_stage(workspace: Path) -> Path:
     workspace = validate_workspace(workspace)
     stage = Path(tempfile.mkdtemp(prefix=f"july-design-{workspace.name}-"))
-    (stage / "MDD" / "Modules").mkdir(parents=True)
-    (stage / "MDD" / "Views").mkdir(parents=True)
+    try:
+        (stage / "MDD" / "Modules").mkdir(parents=True)
+        (stage / "MDD" / "Views").mkdir(parents=True)
+        planning = workspace / "Design" / "Docs" / "策划案.md"
+        metadata = {
+            "schemaVersion": SCHEMA_VERSION,
+            "workspace": str(workspace),
+            "planningSha256": sha256_file(planning),
+            "projectVersion": read_text(workspace / "ProjectSettings" / "ProjectVersion.txt").strip(),
+            "createdAtUtc": datetime.now(timezone.utc).isoformat(),
+        }
+        (stage / STAGE_META_FILE).write_text(
+            json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    except Exception:
+        shutil.rmtree(stage, ignore_errors=True)
+        raise
     return stage
 
 
@@ -559,6 +859,7 @@ def discard_stage(staging: Path) -> None:
         raise ContractFailure([f"拒绝清理非本工具暂存目录：{staging}"])
     if not staging.is_dir():
         raise ContractFailure([f"暂存目录不存在：{staging}"])
+    load_stage_metadata(staging)
     shutil.rmtree(staging)
 
 
@@ -574,6 +875,8 @@ def remove_exact(path: Path, allowed_parent: Path) -> None:
 
 
 def publish(staging: Path, workspace: Path) -> None:
+    if path_is_link(staging):
+        raise ContractFailure([f"暂存目录不能是符号链接或目录联接：{staging}"])
     staging = staging.resolve()
     workspace = validate_workspace(workspace)
     try:
@@ -583,9 +886,11 @@ def publish(staging: Path, workspace: Path) -> None:
     else:
         raise ContractFailure(["暂存目录必须位于目标项目之外"])
 
-    validate_artifacts(staging, "full", "staging")
+    validate_artifacts(staging, "full", "staging", workspace)
     design_root = workspace / "Design"
     docs = design_root / "Docs"
+    if tree_contains_links(docs):
+        raise ContractFailure([f"正式 Design/Docs 包含符号链接或目录联接，拒绝复制发布：{docs}"])
     stale = sorted(design_root.glob(".july-design-txn-*"))
     if stale:
         raise ContractFailure([f"发现未决设计事务，停止发布并人工核对：{path}" for path in stale])
@@ -601,6 +906,7 @@ def publish(staging: Path, workspace: Path) -> None:
         remove_exact(new_docs / "GDD.md", new_docs)
         remove_exact(new_docs / "MDD", new_docs)
         remove_exact(new_docs / CONTRACT_FILE, new_docs)
+        remove_exact(new_docs / STAGE_META_FILE, new_docs)
         shutil.copy2(staging / "GDD.md", new_docs / "GDD.md")
         shutil.copytree(staging / "MDD", new_docs / "MDD")
         validate_artifacts(new_docs, "full", "published")
@@ -643,6 +949,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("--source", required=True, type=Path)
     validate.add_argument("--mode", choices=("partial", "full"), default="full")
     validate.add_argument("--surface", choices=("staging", "published"), required=True)
+    validate.add_argument("--workspace", type=Path)
 
     publish_parser = subparsers.add_parser("publish", help="验证后事务发布完整设计")
     publish_parser.add_argument("--staging", required=True, type=Path)
@@ -662,7 +969,9 @@ def main() -> int:
         if args.command == "create-stage":
             print(create_stage(args.workspace))
         elif args.command == "validate":
-            validate_artifacts(args.source, args.mode, args.surface)
+            if args.surface == "staging" and args.workspace is None:
+                raise ContractFailure(["验证 staging 时必须提供 --workspace"])
+            validate_artifacts(args.source, args.mode, args.surface, args.workspace)
             print(f"PASS: {args.mode} {args.surface} design validation: {args.source.resolve()}")
         elif args.command == "publish":
             publish(args.staging, args.workspace)
@@ -674,6 +983,9 @@ def main() -> int:
     except ContractFailure as exc:
         for error in exc.errors:
             print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+    except OSError as exc:
+        print(f"ERROR: 文件系统操作失败：{exc}", file=sys.stderr)
         return 1
 
 

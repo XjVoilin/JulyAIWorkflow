@@ -37,7 +37,7 @@ GDD 不出现类名、JulyArch 角色、代码目录、程序集、配置 schema
 
 ## 3. 先建立结构化合同
 
-结构决定确认后，运行 [结构化设计合同](design-contract.md) 的 `create-stage`。在返回的系统临时目录中先创建 `.july-design-contract.json`，暂不生成 MDD 正文。
+结构决定确认后，才读取合同、门禁与模板，并运行 [结构化设计合同](design-contract.md) 的 `create-stage`。脚本会把暂存区绑定到当前工作区、策划案摘要和 Unity 项目版本；该绑定只证明事务来源，不表示进度。在返回的系统临时目录中先创建 `.july-design-contract.json`，暂不生成 MDD 正文。
 
 按以下顺序推导合同：
 
@@ -76,11 +76,11 @@ GDD 不出现类名、JulyArch 角色、代码目录、程序集、配置 schema
 
 1. GDD；
 2. `MDD/索引.md`，并嵌入完整合同；
-3. 运行 `partial --surface staging` 验证；
+3. 带同一 `--workspace` 运行 `partial --surface staging` 验证；
 4. 按 `implementationOrder` 生成 MDD，每批最多两份；
 5. 每份 MDD 嵌入对应 Artifact 合同；
-6. 每批后运行 `partial --surface staging` 验证；
-7. 全部生成后运行 `full --surface staging` 验证。
+6. 每批后带同一 `--workspace` 运行 `partial --surface staging` 验证；
+7. 全部生成后带同一 `--workspace` 运行 `full --surface staging` 验证。
 
 批次只是控制单次写入规模，不能发布、不需要用户管理，也不改变外部只有两个动作的接口。任何中断都只留下系统临时文件，不能把部分文件复制进项目。
 

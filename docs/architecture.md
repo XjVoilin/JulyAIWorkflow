@@ -86,7 +86,8 @@ Complete-design generation uses a compiler-like boundary:
 
 ```text
 discussion (no writes)
-  → ephemeral JSON contract in OS temp
+  → workspace-bound staging directory in OS temp
+  → ephemeral JSON contract
   → staged GDD + index
   → staged MDD batches (at most two)
   → partial validation after every batch
@@ -95,9 +96,11 @@ discussion (no writes)
   → full validation of the published design
 ```
 
-The JSON contract is the mechanical authority for artifact identities, action contracts, product-symbol providers, dependency evidence, topological order, and exact file whitelists. The temporary standalone JSON is never published. Its complete value is embedded in `索引.md`; each MDD embeds its exact Artifact object. Human-readable tables and prose are generated from the same source and remain the design review surface.
+The staging directory carries an ephemeral binding to the resolved workspace path, planning-document digest, and Unity project version. This is transaction provenance, not workflow status, and is never published. It prevents a valid stage from one product or an obsolete planning input from being published elsewhere.
 
-`scripts/design_artifacts.py` uses only the Python standard library. It validates both partial staging batches and complete sets. Publishing preserves `策划案.md` and unrelated Docs content, prepares a same-volume candidate directory, swaps the entire Docs directory, validates the result, and restores the old directory on an ordinary failure. Formal project files are never generated one at a time.
+The JSON contract is the mechanical authority for artifact identities, action contracts, product-symbol providers, dependency evidence, topological order, and exact file whitelists. The temporary standalone JSON is never published. Its complete value is embedded in `索引.md`; each MDD embeds its exact Artifact object. Human-readable tables and prose are generated from the same source and remain the design review surface. Validation also requires Markdown headings, substantive non-contract sections, and literal body references to contract IDs, signatures, product symbols, dependencies, and file paths, reducing drift between reviewable prose and machine data.
+
+`scripts/design_artifacts.py` uses only the Python standard library. It validates both partial staging batches and complete sets. Publishing rejects links or directory junctions under the existing Docs tree, preserves `策划案.md` and unrelated Docs content, prepares a same-volume candidate directory, swaps the entire Docs directory, validates the result, and restores the old directory on an ordinary failure. Formal project files are never generated one at a time. A separate plugin-side `unittest` suite exercises the compiler boundary and rollback behavior; it does not authorize or generate target-product test code.
 
 This makes structural completeness, graph ordering, uniqueness, and artifact-set consistency deterministic. Product semantics still require discussion and human review; the script cannot prove that a rule is fun or that a module boundary expresses the intended product.
 

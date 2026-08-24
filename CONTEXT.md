@@ -63,7 +63,7 @@ The guarantee that one MDD can be implemented, compiled, and accepted using only
 The machine-readable JSON authority for the complete artifact list, canonical actions, product-symbol providers and consumers, dependency evidence, implementation order, and exact file whitelists. It is created in OS temp, embedded completely in the index, and projected into each MDD.
 
 **design staging**
-An OS temporary directory created by the plugin tool. GDD, index, and bounded MDD batches are generated and validated there; it is not a project workflow state and is never a partial delivery.
+An OS temporary directory created by the plugin tool and bound to one resolved product workspace, planning-document digest, and Unity version. GDD, index, and bounded MDD batches are generated and validated there; its binding proves transaction provenance, not project workflow state, and it is never a partial delivery.
 
 **transactional publication**
 The only path from staging to formal project design. It validates the complete staged set, prepares a same-volume complete Docs candidate, swaps the directory, validates the published set, and restores the previous Docs on an ordinary failure.
