@@ -58,3 +58,12 @@ The one MDD that creates a handwritten type/member/event, Luban generated type, 
 
 **MDD implementation closure**
 The guarantee that one MDD can be implemented, compiled, and accepted using only the stable host, fixed package APIs, its own whitelist, and outputs from earlier MDDs in the global topological order.
+
+**structured design contract**
+The machine-readable JSON authority for the complete artifact list, canonical actions, product-symbol providers and consumers, dependency evidence, implementation order, and exact file whitelists. It is created in OS temp, embedded completely in the index, and projected into each MDD.
+
+**design staging**
+An OS temporary directory created by the plugin tool. GDD, index, and bounded MDD batches are generated and validated there; it is not a project workflow state and is never a partial delivery.
+
+**transactional publication**
+The only path from staging to formal project design. It validates the complete staged set, prepares a same-volume complete Docs candidate, swaps the directory, validates the published set, and restores the previous Docs on an ordinary failure.

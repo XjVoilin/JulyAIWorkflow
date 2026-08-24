@@ -80,6 +80,27 @@ Design/Docs/
 
 The index records an exact topological implementation order, and Module/View items may interleave. It is not a batch command; each implementation request still names exactly one MDD.
 
+## Design artifact compiler
+
+Complete-design generation uses a compiler-like boundary:
+
+```text
+discussion (no writes)
+  → ephemeral JSON contract in OS temp
+  → staged GDD + index
+  → staged MDD batches (at most two)
+  → partial validation after every batch
+  → full validation
+  → transactional publication of the complete Docs directory
+  → full validation of the published design
+```
+
+The JSON contract is the mechanical authority for artifact identities, action contracts, product-symbol providers, dependency evidence, topological order, and exact file whitelists. The temporary standalone JSON is never published. Its complete value is embedded in `索引.md`; each MDD embeds its exact Artifact object. Human-readable tables and prose are generated from the same source and remain the design review surface.
+
+`scripts/design_artifacts.py` uses only the Python standard library. It validates both partial staging batches and complete sets. Publishing preserves `策划案.md` and unrelated Docs content, prepares a same-volume candidate directory, swaps the entire Docs directory, validates the result, and restores the old directory on an ordinary failure. Formal project files are never generated one at a time.
+
+This makes structural completeness, graph ordering, uniqueness, and artifact-set consistency deterministic. Product semantics still require discussion and human review; the script cannot prove that a rule is fun or that a module boundary expresses the intended product.
+
 ## Deliberate exclusions
 
 - Reusing a persistence provider for product Stores, save/load calls or timing, save failure, cross-launch recovery, server/local storage choice, migrations, repositories, and placeholders.
@@ -90,6 +111,6 @@ The index records an exact topological implementation order, and Module/View ite
 
 ## Implementation gate
 
-Every MDD provides an exact file whitelist and closure proof. Implementation first verifies its prerequisites, action contracts, symbol providers, current project host, and exact package APIs. It then changes only whitelisted product files and declared generated/configuration/registration outputs. A forward reference, signature conflict, or required change to ownership, roles, interfaces, dependencies, files, schema, or View behavior is a complete-design defect and pauses implementation until the design is discussed and updated.
+Every implementation request first runs full artifact validation against formal `Design/Docs`. Every MDD provides an exact file whitelist and closure proof. Implementation then verifies its prerequisites, action contracts, symbol providers, current project host, and exact package APIs. It changes only whitelisted product files and declared generated/configuration/registration outputs. A missing or invalid complete design, forward reference, signature conflict, or required change to ownership, roles, interfaces, dependencies, files, schema, or View behavior is a complete-design defect and pauses implementation until the design is discussed and regenerated.
 
 Validation is proportional to the artifact: Unity compilation and Console review, Luban full generation, registration checks, Prefab/Inspector inspection, representative WindowData/GM display, repeatable editor/manual flow, and target-platform checks when applicable.

@@ -9,7 +9,7 @@ $july-game-pipeline 完成当前版本的完整项目设计
 $july-game-pipeline 按 Design/Docs/MDD/Modules/M003_商品.md 实施
 ```
 
-The first action discusses unresolved structural decisions, then produces one complete design set before any product code:
+The first action discusses unresolved structural decisions without writing project files. It then builds a machine-readable contract and the complete design set in an OS temporary staging directory:
 
 ```text
 Design/Docs/
@@ -22,6 +22,8 @@ Design/Docs/
 ```
 
 `索引.md` owns scope coverage, business-fact ownership, one canonical contract per atomic player action, one provider per cross-MDD product symbol, the full Module/View dependency graph, and its topological implementation order. Every MDD must be independently compilable and acceptable using only earlier outputs. Module and View MDDs contain concrete data sketches, public interfaces, pseudocode, configuration contracts, exact file whitelists, closure proofs, and acceptance paths.
+
+The staging contract is embedded into the index and each MDD. A plugin-side standard-library validator rejects incomplete file sets, duplicate contracts/providers, forward dependencies, unsupported dependency edges, missing sections, placeholders, tooling disguised as product modules, persistence plans, and target test files. MDDs are generated in bounded batches in staging only. A full validation pass is required before a transactional publisher replaces the product's GDD/MDD set; interrupted generation leaves the product unchanged.
 
 The second action implements exactly the MDD named by the user after verifying its earlier prerequisites from the index. It cannot invent extra product files or silently alter the approved role, ownership, interface, dependency, configuration, or View contracts. A forward reference or contract conflict is reported as a complete-design defect, not treated as a normal reason to wait for later work.
 
@@ -36,7 +38,8 @@ plugins/july-ai-workflow/
 └── skills/july-game-pipeline/
     ├── SKILL.md
     ├── agents/openai.yaml
-    └── references/
+    ├── references/
+    └── scripts/design_artifacts.py
 docs/architecture.md
 ```
 

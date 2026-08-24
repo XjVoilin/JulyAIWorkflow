@@ -5,42 +5,47 @@ description: 仅在用户显式调用时，为当前 July/Luban Unity 项目完�
 
 # July 游戏研发流程
 
-本 Skill 只在用户显式引用 `$july-game-pipeline` 时运行。当前 Codex 工作区是唯一目标项目；不搜索或依赖其他产品。
+本 Skill 只在用户显式引用 `$july-game-pipeline` 时运行。当前 Codex 工作区是唯一目标产品，不搜索或依赖其他项目。
 
 ## 定位项目
 
-先读取 [项目约定](references/project-profile.md)，验证当前工作区、`Design/Docs/策划案.md`、Unity 工程标记及固定 July/Luban 依赖。缺少必需输入时报告精确路径并停止，不自动创建策划案或 Unity 工程。
+先读取 [项目约定](references/project-profile.md)，验证当前工作区、`Design/Docs/策划案.md`、Unity 工程标记及固定 July/Luban 依赖。缺少必需输入时报告精确路径并停止，不创建替代项目或策划案。
 
 ## 选择动作
 
-只接受以下两种动作。用户意图不明确时，说明这两个动作并请用户指定；不要推断下一项工作。
+只接受两种动作。用户未明确选择时说明这两种动作，不推断下一项工作。
 
 ### 完成当前版本的完整项目设计
 
-1. 读取 [完整设计流程](references/design-workflow.md)、[设计闭包审计](references/design-closure-audit.md)、[索引模板](references/index-template.md)、[模块 MDD 模板](references/module-mdd-template.md) 和 [View MDD 模板](references/view-mdd-template.md)。涉及配置时同时读取 [Luban 工作流](references/luban-workflow.md)。
-2. 读取策划案、已有 GDD/MDD、当前稳定宿主和当前项目固定版本 July/Luban 源码。重新生成场景中，旧业务代码不作为设计依据。
-3. 先与用户讨论所有会改变产品范围、事实所有权、模块边界、玩家流程、View 清单或技术合同的未决问题。只有用户明确推迟的非结构性内容可以保留未决。
-4. 在内存中建立唯一动作合同表、产品符号提供表和包含全部 Module/View MDD 的实施依赖图；完成拓扑排序，并逐份证明只依赖稳定宿主、自有或更早产物。
-5. 只有 [设计闭包审计](references/design-closure-audit.md) 全部通过后，才一次写入 `GDD.md`、`MDD/索引.md`、全部 `MDD/Modules/*.md` 和全部 `MDD/Views/*.md`；写入后再次交叉核对，失败则继续修订，不交付不闭包设计。
-6. 此动作不创建产品代码、Prefab、场景修改、Luban 工作簿或生成产物。
+1. 读取 [完整设计流程](references/design-workflow.md)、[结构化设计合同](references/design-contract.md)、[设计闭包门禁](references/design-closure-audit.md)、[索引模板](references/index-template.md)、[模块 MDD 模板](references/module-mdd-template.md) 和 [View MDD 模板](references/view-mdd-template.md)。涉及配置时再读取 [Luban 工作流](references/luban-workflow.md)。
+2. 读取策划案、已有 GDD/MDD、稳定宿主及当前固定版本 July/Luban 源码。重新生成时，旧业务代码不是设计证据。
+3. 与用户讨论所有会改变范围、事实所有权、模块边界、玩家流程、View 清单、动作合同、配置 schema 或实施闭包的未决问题。讨论期间不写项目设计文件。
+4. 所有结构性决定确认后，运行 `scripts/design_artifacts.py create-stage --workspace <当前工作区>`，只在返回的系统临时目录中工作。
+5. 先创建 `.july-design-contract.json`，再从同一合同生成 GDD 与索引；索引必须嵌入完全相同的 `july-design-contract` JSON。运行一次 `partial --surface staging` 验证。
+6. 按全局实施顺序生成 MDD，每批最多两份；每份嵌入与索引完全一致的 `july-mdd-contract` JSON。每批后运行 `partial --surface staging` 验证。不要把批次当作用户操作，也不要在批次之间发布。
+7. 全部 MDD 完成后运行 `full --surface staging` 验证。只有退出码为 0 才运行 `publish`；发布脚本会保留 `策划案.md` 和其他非 GDD/MDD 文档，并以整套设计替换旧 GDD/MDD。
+8. 发布后再次对正式 `Design/Docs` 运行 `full --surface published` 验证，再清理本轮暂存目录。若生成中断、验证失败或发布失败，正式项目不得被部分更新，也不得报告设计完成。
+9. 此动作不创建产品代码、Prefab、场景修改、Luban 工作簿或生成产物。
+
+所有脚本命令、合同字段和清理边界以 [结构化设计合同](references/design-contract.md) 为准。不得绕过脚本直接把暂存文件逐个复制进项目。
 
 ### 实施用户指定的单份 MDD
 
-1. 用户必须明确指定 `Design/Docs/MDD/Modules/` 或 `Design/Docs/MDD/Views/` 下的一份 MDD。未指定时列出这两个动作，不自行选择文件。
-2. 读取策划案、GDD、索引、指定 MDD、[设计闭包审计](references/design-closure-audit.md)、[实施流程](references/implementation-workflow.md) 和 [代码质量规则](references/code-quality.md)。模块涉及 Luban 时再读取 [Luban 工作流](references/luban-workflow.md)。
-3. 核验该 MDD 的精确前置 MDD 已实施，引用的动作签名与索引唯一合同一致，所有产品符号来自稳定宿主、自有白名单或更早 MDD，并且当前实施可以独立编译验收。
-4. 若实现需要新增或改变设计外的事实、角色、依赖、接口、文件、配置字段或 View 行为，停止实现，与用户讨论并先更新设计文档。
-5. 只实施该 MDD；完成后执行与风险相称的验证，不自动继续其他 MDD。
+1. 用户必须明确指定 `Design/Docs/MDD/Modules/` 或 `Design/Docs/MDD/Views/` 下的一份 MDD；不自行选择。
+2. 在读取设计并修改产品前，先对正式 `Design/Docs` 运行 `scripts/design_artifacts.py validate --mode full --surface published`。失败表示整套设计无效；不得实施“还能做的部分”。
+3. 读取策划案、GDD、索引、指定 MDD、[实施流程](references/implementation-workflow.md) 和 [代码质量规则](references/code-quality.md)。涉及配置时再读取 [Luban 工作流](references/luban-workflow.md)。
+4. 核验指定 MDD 的前置产物已经实施，动作、符号提供者、文件白名单和当前稳定宿主与设计一致。
+5. 若实现需要改变设计外的事实、角色、依赖、接口、文件、配置字段或 View 行为，停止实现，与用户讨论并先更新整套设计。
+6. 只实施这一份 MDD，按风险执行验证，不自动继续其他 MDD。
 
-## 强制设计原则
+## 强制产品设计原则
 
-- 完整设计先于任何产品实现，View 与模块在同一次完整设计中完成。
-- GDD 只写产品事实；技术设计从索引开始。
+- GDD 只写产品事实，技术设计从索引开始；Module 与 View 必须覆盖同一当前版本。
 - 每个业务事实只有一个权威来源；派生值不重复配置或存储。
-- 模块按稳定产品能力划分；全部 Module/View/Luban/注册依赖进入同一无环实施图，每份 MDD 必须形成独立编译闭包。
-- Store、System、Procedure、普通类型、Luban 生成类型和 View 按真实责任选择，不设置角色配额。
-- 新产品类型必须通过必要性审查；不要创建生成类型的镜像、别名、查询转发器或静态 Definition 包装。
-- 每个原子玩家动作只有一个动作 ID、一个所有者、一个规范签名和一个导航所有者；玩家完整流程和跨模块调用写在发起能力的模块 MDD 中，不创建单独联通文档或全局协调层。
-- 每份 MDD 必须包含精确产品文件白名单，实施不得越界。
-- 不接入现有持久化系统，不设计保存/读取、跨启动恢复、保存失败或任何持久化架构；不生成目标项目测试代码。
-- 采用边界验证、内部信任、违约快速失败；不添加无真实故障依据的兜底。
+- 模块按稳定业务能力划分，不能用 Editor 工具、验证、生成或发布职责伪装成业务模块。
+- Store、System、Procedure、普通类型、Luban 生成类型与 View 按真实责任选择；不设置角色配额，不创建静态 Definition 包装或生成类型镜像。
+- 每个原子玩家动作只有一个动作 ID、所有者、规范签名和导航所有者；每个跨 MDD 产品符号只有一个提供者。
+- 全部 Module/View、Luban、注册、Prefab 和运行时合同进入同一无环实施图；每份 MDD 只依赖稳定宿主、自有或更早产物。
+- 每份 MDD 必须包含精确产品文件白名单；实施不得越界。
+- 不设计持久化，不生成目标项目测试代码，不维护流程状态，不自动实施下一份 MDD。
+- 采用边界验证、内部信任、违约快速失败，不添加无真实故障依据的兜底。

@@ -5,6 +5,8 @@ This repository defines an explicit-invocation workflow for existing Unity produ
 - Keep the external skill interface limited to two actions: complete the current-version product design, or implement one user-specified MDD.
 - Treat the current Codex workspace as the only target product. Require `Design/Docs/策划案.md`; never search for another product, create a Unity project, or create the planning input.
 - The design contract is `策划案.md → GDD.md → MDD/索引.md + all Modules and Views MDDs`. Finish and discuss the complete design before creating product code or Luban workbooks.
+- During complete-design generation, do not write formal project design files incrementally. Build the machine-readable contract and all artifacts in the OS temporary staging directory created by `scripts/design_artifacts.py`; validate each bounded batch, then use the script's transactional publisher.
+- Treat the embedded index/MDD JSON contracts as the mechanical authority for IDs, paths, actions, providers, dependency evidence, topological order, and file whitelists. A design or implementation action cannot report completion unless the appropriate full validator exits successfully.
 - Use only the user's requirements, product documents, the current stable host, and the exact pinned July/Luban sources as design evidence. Do not search outside the current product.
 - In regeneration work, old gameplay code is not design evidence. Inspect only stable host composition, package pins, framework entrypoints, and authoring conventions that remain in scope.
 - Define modules by stable product capability, not by technical layer or player-flow step. Define Views by player-visible screen or visual feature.

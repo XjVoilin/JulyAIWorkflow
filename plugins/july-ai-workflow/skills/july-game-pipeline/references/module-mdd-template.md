@@ -336,3 +336,15 @@ Result Calculate(authoritativeInputA, authoredRowB)
 - 单元测试、PlayMode 测试、测试 asmdef、Mock、Fake、Fixture；
 - 本 MDD 白名单外的能力和 View；
 - 为未来需求预留的空角色、默认成功或兼容层。
+
+## 17. 结构化 MDD 合同
+
+从暂存区 `.july-design-contract.json` 的 `artifacts` 中复制本 MDD 的完整对象，不改名、不删字段、不另行解释：
+
+````text
+```july-mdd-contract
+{本 MDD 的完整 Artifact JSON}
+```
+````
+
+正文中的 ID、路径、依赖、动作、产品符号和文件白名单必须与此对象逐字一致。该块不是进度状态；它是索引合同在本 MDD 的机器可验证投影。
