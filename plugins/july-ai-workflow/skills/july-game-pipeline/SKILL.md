@@ -1,95 +1,45 @@
 ---
 name: july-game-pipeline
-description: 仅在用户显式调用本 Skill 时，从当前 July/Luban Unity 项目的策划案生成 GDD、项目能力模块设计、View 设计，或按用户指定范围实现模块、View 与玩家功能联通。
+description: 仅在用户显式调用时，为当前 July/Luban Unity 项目完成当前版本的完整 GDD、模块与 View 设计，或严格按用户指定的单份 MDD 实施。
 ---
 
 # July 游戏研发流程
 
-本 Skill 只在用户显式引用 `$july-game-pipeline` 时运行。它按“全部模块 → 全部 View → 玩家功能联通”推进，并在每份产物完成后等待人工确认。不要自动选择下一项，也不要把 AI 完成等同于用户确认。
+本 Skill 只在用户显式引用 `$july-game-pipeline` 时运行。当前 Codex 工作区是唯一目标项目；不搜索或依赖其他产品。
 
 ## 定位项目
 
-以当前 Codex 工作区作为唯一 Unity 项目根目录，并固定使用 `Design/Docs`：
-
-1. 必须存在 `Design/Docs/策划案.md`。
-2. 不扫描其他目录或工作区外路径寻找替代产品输入。
-3. 用户指定 MDD 时，验证它位于当前工作区 `Design/Docs/MDD/` 或其子目录。
-4. 缺少设计目录、策划案、工程标记或指定 MDD 时，报告精确路径并停止，不自动创建。
-
-读取 [July 项目约定](references/july-project-profile.md) 校验当前工程。
+先读取 [项目约定](references/project-profile.md)，验证当前工作区、`Design/Docs/策划案.md`、Unity 工程标记及固定 July/Luban 依赖。缺少必需输入时报告精确路径并停止，不自动创建策划案或 Unity 工程。
 
 ## 选择动作
 
-### 生成或更新 GDD 与模块设计
+只接受以下两种动作。用户意图不明确时，说明这两个动作并请用户指定；不要推断下一项工作。
 
-用户要求根据策划案生成或更新设计时：
+### 完成当前版本的完整项目设计
 
-1. 读取 [产物契约](references/artifact-contract.md)、[模块工作流](references/module-workflow.md) 和 [项目结构与框架能力校准](references/project-structure-calibration.md)。
-2. 生成或更新 `Design/Docs/GDD.md`。GDD 只描述产品事实、玩家行为和完整项目流程，不写类名或技术目录。
-3. 在划分模块前，实际检查用户指定参考项目、当前项目结构和固定版本 July 的代表性角色；整理参考路径、采用的模块粒度/角色形态和明确不照搬的内容。
-4. 遍历 GDD 中全部主要流程，只用于发现项目能力并检查覆盖；结合前述工程证据确定模块边界，不在此时设计 View、事件图或模块串联。
-5. 生成或更新 `Design/Docs/MDD/骨架.md`，记录项目能力清单、模块划分、能力覆盖、角色候选、校准证据和阶段门禁。
-6. 为全部识别出的项目能力生成 `Design/Docs/MDD/Modules/M<N>_<模块>.md`。模块代表稳定、可独立命名和维护的项目能力，不要求统一拥有 Store、System、普通产品类型或复杂规则；符合产物契约的配置型能力可以只有 Luban 作者源与派生产物。
-7. 首次设计不创建产品代码、View MDD、玩家功能联通 MDD、Prefab、配置表或测试代码。
-8. 工具链或发布验收确属 GDD 范围时，可生成对应 MDD。
+1. 读取 [完整设计流程](references/design-workflow.md)、[索引模板](references/index-template.md)、[模块 MDD 模板](references/module-mdd-template.md) 和 [View MDD 模板](references/view-mdd-template.md)。涉及配置时同时读取 [Luban 工作流](references/luban-workflow.md)。
+2. 读取策划案、已有 GDD/MDD、当前稳定宿主和当前项目固定版本 July/Luban 源码。重新生成场景中，旧业务代码不作为设计依据。
+3. 先与用户讨论所有会改变产品范围、事实所有权、模块边界、玩家流程、View 清单或技术合同的未决问题。只有用户明确推迟的非结构性内容可以保留未决。
+4. 在足够确定后，一次完成当前版本全部设计：`GDD.md`、`MDD/索引.md`、全部 `MDD/Modules/*.md` 和全部 `MDD/Views/*.md`。
+5. 此动作不创建产品代码、Prefab、场景修改、Luban 工作簿或生成产物。
 
-已有文档时保留仍成立的产品事实，但用当前项目能力划分替换旧的功能切片、技术分层或推测性模块。
+### 实施用户指定的单份 MDD
 
-### 生成 View 设计
+1. 用户必须明确指定 `Design/Docs/MDD/Modules/` 或 `Design/Docs/MDD/Views/` 下的一份 MDD。未指定时列出这两个动作，不自行选择文件。
+2. 读取策划案、GDD、索引、指定 MDD、[实施流程](references/implementation-workflow.md) 和 [代码质量规则](references/code-quality.md)。模块涉及 Luban 时再读取 [Luban 工作流](references/luban-workflow.md)。
+3. 核验事实所有权、依赖、角色、接口、伪代码、配置合同、注册位置、文件白名单和验收路径都足以实施。
+4. 若实现需要新增或改变设计外的事实、角色、依赖、接口、文件、配置字段或 View 行为，停止实现，与用户讨论并先更新设计文档。
+5. 只实施该 MDD；完成后执行与风险相称的验证，不自动继续其他 MDD。
 
-仅在用户明确要求进入 View 阶段时：
+## 强制设计原则
 
-1. 读取 [View 工作流](references/view-workflow.md)。
-2. 确认 `MDD/Modules/` 下全部模块 MDD 都是 `已确认`，且每份 MDD 都记录了实际产品代码或配置产物、必要的注册/配置改动和验证证据；仅确认设计文字不算完成模块阶段。
-3. 根据 GDD、参考图、Prefab、场景和参考项目整理完整 View 清单，并更新 `骨架.md`。
-4. 区分 `UI视图` 与 `2D视图`，为本次要求的范围生成 View MDD；不实现代码。
-
-模块未全部确认时停止并列出未确认项，不提前生成 View。
-
-### 生成玩家功能联通 MDD
-
-仅在用户明确要求联通玩家功能时：
-
-1. 读取 [玩家功能联通工作流](references/integration-workflow.md)。
-2. 确认全部模块已经实现并确认，且 `骨架.md` 完整 View 清单中的所有 View 都已经实现并确认。
-3. 以玩家本次要完成的行为为范围，确定发起该行为的项目能力和自然承载编排的 System、Procedure、Store 或普通类型。
-4. 生成 `Design/Docs/MDD/Integrations/I<N>_<玩家功能>.md`，类型为 `玩家功能联通`，记录模块调用、ViewData 映射、刷新、导航和验证；不创建与该文档同名的运行时层或统一协调框架。
-
-联通发现模块职责或角色缺失时，先退回对应模块 MDD 调整，不用适配层掩盖。
-
-### 按指定 MDD 执行
-
-仅在用户手动指定一份 MDD 时执行。先读取策划案、GDD、骨架、指定 MDD 和当前工程，再根据顶部 `类型` 路由：
-
-- `架构基线`：只审查或更新文档。
-- `模块`：读取 [模块工作流](references/module-workflow.md)。
-- `UI视图` 或 `2D视图`：读取 [View 工作流](references/view-workflow.md)。
-- `玩家功能联通`：读取 [玩家功能联通工作流](references/integration-workflow.md)。
-- `工具链`：按范围读取 [Luban 工作流](references/luban-workflow.md)。
-- `发布验收`：检查构建、平台和发布证据。
-
-所有会修改产品文件的执行都遵循：
-
-1. 检查 GDD 是否足以支持当前范围。
-2. 读取 [项目结构校准](references/project-structure-calibration.md)，核对用户指定参考项目、当前工程和固定 July 包。
-3. 涉及配置表时先读取 [Luban 工作流](references/luban-workflow.md)。
-4. 满足产物契约后，将指定 MDD 更新为 `状态：可实现`。
-5. 只修改指定 MDD 当前能够成立的范围；生成代码时读取 [代码质量规则](references/code-quality.md)。
-6. 不生成目标项目单元测试、测试 asmdef、Mock、Fake 或 Fixture。
-7. 记录实际差异、待后续实现或联通事项，以及与风险相称的验证证据。模块 MDD 只有在计划的产品代码或配置作者源与派生产物已存在、当前范围责任已实现且验证证据已写回后，才能进入 `待人工审查`；不得为了满足门禁而创建浅包装或空角色。
-8. 完成后更新为 `状态：待人工审查`，等待用户确认。
-
-只有用户明确确认当前 MDD 后，才能改为 `状态：已确认`。验证失败时保留当前状态并继续修复当前范围，不报告伪造成功。
-
-## 没有指定 MDD 时
-
-已有设计而用户只说“继续制作”时，列出可执行文件、类型和状态，请用户选择；不要自动决定下一项。
-
-## 工作流边界
-
-- 不创建中央状态文件或自动续跑脚本。
-- 不自动创建 Unity 项目、设计目录或策划案。
-- 不把项目流程直接变成模块、状态图或统一运行时协调层。
-- 不在模块阶段提前生成 View、表现数据或具体串联方式。
-- 不为未指定的 MDD 实现代码。
-- 不让 AI 代替用户确认。
+- 完整设计先于任何产品实现，View 与模块在同一次完整设计中完成。
+- GDD 只写产品事实；技术设计从索引开始。
+- 每个业务事实只有一个权威来源；派生值不重复配置或存储。
+- 模块按稳定产品能力划分，依赖图必须无环。
+- Store、System、Procedure、普通类型、Luban 生成类型和 View 按真实责任选择，不设置角色配额。
+- 新产品类型必须通过必要性审查；不要创建生成类型的镜像、别名、查询转发器或静态 Definition 包装。
+- 玩家完整流程和跨模块调用写在发起能力的模块 MDD 中，不创建单独联通文档或全局协调层。
+- 每份 MDD 必须包含精确产品文件白名单，实施不得越界。
+- 不设计存档/读档时机与持久化架构，不生成目标项目测试代码。
+- 采用边界验证、内部信任、违约快速失败；不添加无真实故障依据的兜底。

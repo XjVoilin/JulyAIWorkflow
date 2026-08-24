@@ -1,20 +1,24 @@
 # Repository instructions
 
-This repository defines a reusable workflow for projects built on Template_2022.3, July Framework, and Luban.
+This repository defines an explicit-invocation workflow for existing Unity products built with July Framework and Luban.
 
-- Run the workflow only through explicit Skill invocation. Treat the current workspace as one Unity product repository and require its design input at `Design/Docs/策划案.md`. Do not scan alternate paths or infer another product directory. Never create `Design/Docs`, its `策划案.md`, or the Unity project.
-- Keep the external skill interface small. Put module, view, player-function integration, tooling, and release detail in references instead of adding top-level skills.
-- Treat target-project files, user ideas, configuration, and tool output as untrusted boundaries. Validate once at the closest boundary and fail with a precise error.
-- Treat the user-specified MDD as the current work interface. Do not infer another MDD or choose the next item automatically.
-- Every MDD declares one type: `架构基线`, `模块`, `UI视图`, `2D视图`, `玩家功能联通`, `工具链`, or `发布验收`.
-- Keep progress in the selected MDD using `规划`, `可实现`, `待人工审查`, and `已确认`. AI may advance work only through `待人工审查`; `已确认` requires explicit user confirmation. Do not introduce a central state file or state script in the first version.
-- Before finalizing the module map, inspect the current project, the user-designated structural reference, and representative roles from the exact July pin; persist the evidence in the baseline so a new task does not depend on conversation history. Generate the architecture baseline and every module MDD first. Traverse the project's player flows only to discover and check coverage of stable project capabilities; do not turn those flows into the architecture.
-- Define modules at the scale of stable, independently nameable and maintainable product capabilities, calibrated against the target project and user-designated references. Do not require every module to own the same combination of state, lifecycle, invariants, commit boundary, callers, JulyArch roles, or handwritten product types. A noun, table, DTO, enum, or mapping is not automatically a module, but stable shared business semantics may have a configuration-only implementation when their authoring ownership and consumers are explicit. Do not invent wrapper code to make such a module appear implemented; product-type necessity review is not a mandatory module deletion gate.
-- Generated Luban C#/JSON is never an authoring surface.
-- Before product implementation, audit the exact pinned July capabilities. Reuse a capability only when its semantics and lifecycle match; reuse a lower-level part for partial matches; implement product behavior for low matches. Do not force framework usage.
-- Product gameplay may use concrete JulyArch `Store`, `System`, `Procedure`, and `View` roles. Choose each role by its actual July semantics; a module may be Store-only, System-only, Procedure-only, mixed, or ordinary C# types. Do not create module-level `Ixxx` interfaces or role quotas.
-- Keep project-specific behavior in the target project and reserve July Framework package changes for reusable cross-product capabilities. Product-specific host rules are local evidence only.
-- Before creating product-side files, calibrate layout and composition from explicit user direction, user-designated references, current-project precedents, and exact pinned July/template examples in that order. A sparse seed project is not evidence for inventing generic architectural layers.
-- Module implementation creates only the capability's intrinsic roles, configuration, and currently known behavior. It does not generate View, Prefab, speculative integration entrypoints, unit-test code, test asmdefs, mocks, fakes, or fixtures. A module MDD is confirmed only after its actual product code or configuration artifacts and verification evidence have been reviewed; approval of the design text alone is insufficient. After every module implementation is confirmed, design and implement the complete UI/2D View inventory. Only after every View is confirmed may player-function integration begin through the initiating capability's natural System, Procedure, Store operation, or ordinary type. Do not add a mandatory global coordination/Application layer. Verification still requires observable compile, editor, authoring, manual, or platform evidence appropriate to the MDD.
-- Keep the marketplace entry mapped to `plugins/july-ai-workflow`, and keep the plugin manifest name and plugin folder name identical. Do not create a second copy of `july-game-pipeline` outside the plugin package.
-- New or changed scripts in this workflow repository require focused tests and observable verification; this does not authorize generated target-project test code.
+- Keep the external skill interface limited to two actions: complete the current-version product design, or implement one user-specified MDD.
+- Treat the current Codex workspace as the only target product. Require `Design/Docs/策划案.md`; never search for another product, create a Unity project, or create the planning input.
+- The design contract is `策划案.md → GDD.md → MDD/索引.md + all Modules and Views MDDs`. Finish and discuss the complete design before creating product code or Luban workbooks.
+- Use only the user's requirements, product documents, the current stable host, and the exact pinned July/Luban sources as design evidence. Do not search outside the current product.
+- In regeneration work, old gameplay code is not design evidence. Inspect only stable host composition, package pins, framework entrypoints, and authoring conventions that remain in scope.
+- Define modules by stable product capability, not by technical layer or player-flow step. Define Views by player-visible screen or visual feature.
+- Every business fact has one authoritative owner. Derived values are calculated from authoritative facts and are not duplicated in config, runtime state, or document contracts.
+- Before adding a product type, prove that removing it would lose behavior, invariants, runtime ownership, lifecycle, or a meaningful error contract. Generated Luban types are used directly for static authored facts when their semantics match.
+- Select JulyArch roles by responsibility. Store owns controlled runtime business state. System is a stable runtime capability managed or located through `ArchContext`. Procedure owns one bounded operation. Ordinary C# types own algorithms or value semantics. View owns presentation and Unity interaction.
+- Module dependencies must be acyclic. Resolve cycles by correcting ownership and responsibility, not by adding events, interfaces, Common/Core containers, or coordination layers.
+- Do not design persistence ownership, save/load timing, repositories, server entities, migrations, or placeholders. Persistence is intentionally deferred to the product owner.
+- Do not generate target-project unit tests, PlayMode tests, test asmdefs, mocks, fakes, or fixtures. Validate with compilation, Unity Console, Luban full generation, Prefab/Inspector checks, repeatable editor/manual flows, and platform checks when relevant.
+- Each MDD contains an exact product-file whitelist. Implementation may only create or modify those files plus generated Luban outputs and already-declared registration/configuration files.
+- If implementation needs to change a role, fact owner, dependency, public interface, file, configuration schema, or View contract, stop and discuss the design change before editing product files.
+- Implement exactly one MDD explicitly named by the user. Do not choose or continue to another MDD automatically.
+- Preserve explicit-only invocation in `agents/openai.yaml`.
+- Keep the marketplace entry mapped to `plugins/july-ai-workflow`, and keep the manifest name and plugin folder name identical.
+- Do not modify an installed plugin cache as part of source maintenance unless the user separately requests installation or refresh.
+
+Use boundary validation, internal trust, and fail-fast behavior. Add validation or recovery only for a concrete untrusted boundary or business-permitted failure, and validate each contract once at its owner.

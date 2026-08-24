@@ -1,57 +1,51 @@
-# July AI Workflow
+# July AI Workflow language
 
-本上下文定义插件的核心语言，避免把完整项目流程、项目能力模块、View 和玩家功能联通混成同一种实施任务。
+This glossary keeps product facts, design artifacts, JulyArch roles, and implementation tasks distinct.
 
-## Language
+**策划案**
+The user's product intent and raw requirements. It may be incomplete or ambiguous and must be discussed before technical design.
 
-**完整项目流程**:
-GDD 中玩家能够经历的主要功能、路径和业务分支。工作流遍历它们以检查项目能力是否覆盖完整。
-_Avoid_: 直接变成模块边界、全局状态图、统一运行时协调层
+**GDD**
+The current-version product contract: player goals, concepts, rules, complete player flows, visible results, allowed failures, scope, and explicitly deferred nonstructural content. It contains no class names, source directories, July roles, or configuration schemas.
 
-**项目能力**:
-项目中稳定、可独立命名、定位和维护的能力，团队会独立谈论和修改它。
-_Avoid_: 页面步骤、技术层、数据类型集合、未来可能复用的空抽象
+**业务事实**
+A fact with exactly one authority. It may be authored configuration, controlled runtime data, a framework-provided value, or a value derived from other authoritative facts.
 
-**业务模块**:
-承载一项项目能力的实施与审查单位，包含实现该能力所需的 Store、System、Procedure、普通类型及内部 Data、Events、状态、策略或 Luban 类型化配置。稳定且共享的业务语义可以只有配置产物，不为满足门禁制造包装代码。
-_Avoid_: 固定角色配额、完整玩家流程、Content/Common/Core 总容器、只转发生成类型的产品包装
+**业务模块**
+A stable, independently nameable product capability. A module owns the runtime state, rules, operations, and authored data needed for that capability. It is not a technical layer, screen step, table collection, or wrapper around generated types.
 
-**能力覆盖**:
-完整项目流程中的每项责任都能归属到一个项目能力，用于发现遗漏和重复，不描述模块调用顺序。
-_Avoid_: 依赖图、事件图、联通设计
+**View**
+A player-visible screen or visual feature. UI Windows and world/scene Views are documented by visual responsibility, without creating separate technical documentation hierarchies.
 
-**模块总览**:
-骨架 MDD 中的项目能力、模块责任、角色候选和 GDD 覆盖关系。首次设计不包含具体 View 或流程接线。
-_Avoid_: 可执行代码任务、预制全局架构
+**索引**
+`Design/Docs/MDD/索引.md`, the complete technical map. It records scope coverage, fact ownership, module boundaries, acyclic dependencies, the complete View inventory, MDD links, and recommended implementation waves. Waves are advice only.
 
-**模块 MDD**:
-描述并实现一个项目能力及其真实产品代码或配置产物。模块阶段完成能够由自身确定的内容，只有 View 或玩家功能联通后才能确定的行为暂不猜测。产品类型需要接受必要性审查，但该审查不是模块成立的单一删除门槛。
-_Avoid_: 强制真实调用者、把删除检验当模块门槛、空角色、配置浅包装、未来展示 DTO、完整串联
+**模块 MDD**
+The full implementation contract for one business module: responsibility, facts, roles, data structures, interfaces, algorithms, dependencies, consumers, invariants, configuration, registration, exact file whitelist, and acceptance.
 
-**UI View MDD**:
-使用 Window 表达稳定 UI 视觉职责；展示动态事实时增加 WindowData，发布意图或接收刷新时增加 Events。
-_Avoid_: 业务模块、完整玩家功能、为静态界面创建空 Data/Events
+**View MDD**
+The full implementation and production contract for one screen or visual feature: visible facts, interactions, Data design, partial refreshes, empty notification events, navigation, Prefab/scene wiring, exact file whitelist, and acceptance.
 
-**2D View MDD**:
-使用 View 表达场景空间对象与表现；业务驱动时增加 ViewData，存在交互、播放请求或刷新时增加 Events。
-_Avoid_: UIWindow、业务规则、为静态装饰创建空 Data/Events
+**Store**
+The authoritative owner of controlled runtime business state. Reads are public; mutations are restricted to the owning module's Systems/Procedures. It publishes an empty business event only after a consistent mutation completes.
 
-**玩家功能联通 MDD**:
-记录一项玩家行为如何由发起能力的 System、Procedure、Store 操作或普通类型调用其他模块并驱动 View。文件类型为 `玩家功能联通`，`Integrations/` 只保存实施文档，不对应运行时代码层。
-_Avoid_: ApplicationSystem、总协调 Manager、纯转发协调器
+**System**
+A stable runtime capability managed or located through `ArchContext`. It may be simple and may have only one current consumer. It exposes meaningful business operations and may directly complete simple synchronous behavior or start a Procedure.
 
-**框架能力审计**:
-以业务需要、候选能力、匹配程度、决定和证据判断是否复用固定版本 July 能力。
-_Avoid_: 看到相似名称就强行使用、忽略已有能力
+**Procedure**
+One bounded operation, especially a multistep, asynchronous, cancellable, or commit-oriented use case. Windows do not construct or run Procedures directly.
 
-**待后续实现或联通事项**:
-模块或 View 已确认但只有真实玩家功能出现后才能确定的行为。优先记录在 MDD；代码中仅在接入位置明确时留下定向 TODO。
-_Avoid_: 空方法、默认结果、伪造成功
+**ordinary type**
+A C# type that owns a real algorithm, invariant, or value semantic without needing JulyArch lifecycle or runtime location.
 
-**待人工审查**:
-AI 已完成当前约定范围和可用验证，等待用户检查。
-_Avoid_: 已确认、自动完成
+**Luban generated type**
+The direct typed contract for static authored facts. A handwritten mirror, definition wrapper, alias enum, or lookup forwarder is not a separate product role.
 
-**已确认**:
-用户明确接受当前 MDD 的实际产物。模块和 View 只有完成实现与验证后才能进入该状态。
-_Avoid_: AI 根据编译或自己的判断自动写入、用设计认可代替实现确认
+**WindowData**
+Mutable presentation data owned by a Window for its open lifetime. Its constructor obtains complete initial presentation facts through only the required July query interfaces. Targeted refresh methods re-read only the affected facts. It is writable so editor/GM tooling can create representative display data directly.
+
+**empty business event**
+A notification that a named business fact changed. It carries no display data. A receiving Window calls the matching WindowData refresh method and then redraws the affected visual region.
+
+**file whitelist**
+The complete list of product files an MDD may create or modify. Any additional file or design change requires discussion and an MDD update before implementation continues.

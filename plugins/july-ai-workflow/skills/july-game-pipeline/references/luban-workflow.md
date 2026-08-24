@@ -1,69 +1,99 @@
-# Luban Workflow
+# Luban 工作流
 
-## Authority
+## 1. 权威边界
 
-Luban schema workbooks, data workbooks, and configuration under `Tools/Luban/DataTables/` are source inputs. Generated C# and JSON are derived outputs. Never edit derived outputs directly.
+Luban schema、数据工作簿及其配置是作者源；生成的 C# 与数据文件是派生产物。只编辑作者源，绝不直接修改生成文件。
 
-## Target-project discovery
+Luban 生成类型是静态作者事实的直接类型合同。产品代码可以直接消费 Bean、枚举和 `Tb*`；不要创建字段镜像、重命名包装、手写重复枚举或只转发查询的 Definition。
 
-Before defining a config change:
+## 2. 先设计，后建表
 
-1. Read the target project's `Assets/Game/Scripts/Editor/LubanGenerator.cs` and nearby documentation.
-2. Inspect existing tables that are closest to the required data shape.
-3. Determine whether the project uses a flat `Datas/` layout or discovered module directories.
-4. Identify how nearby source workbooks are named and grouped for human authors.
-5. Record source path, workbook naming convention, table/bean identity, primary key, mode, consumers, and generated output ownership in MDD.
+创建或修改任何工作簿之前，所属模块 MDD 必须完整记录：
 
-The inspected seed generator supports both flat and modular layouts. This is current evidence, not permission to assume every July project kept that implementation unchanged.
+- 作者源目录和实际元表约定；
+- 表、Bean、枚举的准确身份；
+- 每个字段的名称、类型、键/索引、含义和约束；
+- 每个字段的业务事实所有者；
+- 直接消费者及消费方式；
+- 至少一个代表性数据示例；
+- 生成 C# 类型和生成数据位置；
+- 加载/注册入口；
+- 全量生成命令或编辑器入口；
+- 验收与残留检查。
 
-## Workbook naming
+schema 不完整时停止设计或实施，不能先建临时列再让代码适配。
 
-Calibrate workbook names before creating or renaming them. Apply evidence in this order: explicit user direction, a user-designated reference project, established neighboring workbooks in the target project, then the workflow default. A default must not override a clear repository convention.
+## 3. 当前项目发现
 
-When the project uses bilingual workbook names and no stronger convention exists, use `<中文业务分类>_<Luban英文类型名>.xlsx`:
+从当前目标工程实际检查：
 
-- The Chinese prefix exists for human scanning and grouping. Use the narrow business concept represented by the table, such as `摊位`, `摊位等级`, or `每日题目`.
-- Do not prepend the same product name, project name, or broad gameplay label to every workbook. A shared prefix that does not distinguish tables defeats its purpose.
-- Keep the English type name aligned with the identity referenced by `__tables__.xlsx`; do not invent a second English alias only for the filename.
-- Preserve Luban meta workbook names such as `__tables__.xlsx`, `__beans__.xlsx`, and `__enums__.xlsx`.
+1. Luban 生成器和相邻说明；
+2. `__tables__.xlsx`、`__beans__.xlsx`、`__enums__.xlsx` 等元表；
+3. 与目标数据形状相近的当前作者表；
+4. 平铺或模块化作者目录；
+5. 工作簿命名、sheet 命名、mode、主键和索引惯例；
+6. 生成 C# 与数据的目标目录；
+7. 加载和注册路径；
+8. 全量生成入口。
 
-When a source workbook is renamed, update `__tables__.xlsx` and every maintained source reference in the same change. Treat successful full generation as the validation that the new path is authoritative.
+只使用当前工程和当前固定 Luban 版本证据，不根据记忆猜测格式。
 
-## Generation timing and ownership
+## 4. 业务事实放置
 
-- Do not create a table merely because a noun appears in GDD or a future View may need display data.
-- During the module stage, create a table only when a stable project capability owns its interpretation and the current scope requires that schema. A configuration-only capability does not need product wrapper code, but its MDD must identify direct consumers and verification evidence.
-- Leave fields whose meaning depends on later player-function integration until that integration is designed. Add presentation-only resources during the View stage.
-- Do not collect unrelated configuration into a broad `Content` module or give every workbook the same project/gameplay prefix.
-- When the schema is still speculative, record the open question in the selected MDD and stop instead of generating a workbook, C#, JSON, or diagnostic sidecar.
+按以下顺序判断字段位置：
 
-## Generated types and product code
+1. 记录自身拥有的作者值放在该记录表；
+2. 多条记录共享、但属于明确业务能力的值放在该能力的配置；
+3. 只有确实全局、可调、非派生且没有更窄所有者的值才放入当前工程既有杂项/单例配置；
+4. 算法、协议、格式和框架不变量保留在代码；
+5. 可从作者数据、枚举、当前运行时事实或其他权威值计算的数据不配置。
 
-- Treat generated enums, beans, and `Tb*` tables as the typed configuration contract. Product consumers should use them directly when doing so preserves the intended business semantics.
-- Do not create a product type only to hold the same fields, rename generated properties, forward lookups, or rescan table completeness. Such a type is justified only when it owns independent behavior, runtime state, lifecycle, caching, mutation, or an error contract that the generated configuration cannot express.
-- If a calculation also needs board layout, customers, process state, or another future consumer-owned fact, leave it to the module that owns those facts or to the later integration. Do not introduce a partial calculator with placeholder or compressed boolean inputs merely to give the configuration module runtime code.
+禁止配置：
 
-## Configuration value placement
+- 表行数、枚举项数和覆盖数量；
+- 已有列表长度或集合内容的重复计数；
+- 当前日期、时间差、索引等可由框架时间和配置起点计算的值；
+- 为某个消费者方便而复制其他表字段；
+- `Expected*` 一类由数据本身可推导的常量数组；
+- 仅用于补偿手写包装类型的别名字段。
 
-- Put record-specific values in the table whose record owns their meaning.
-- Put a project-wide, designer-tunable scalar in the project's established misc/singleton configuration shape when no narrower table owns it. Do not use a misc table as a container for unrelated values.
-- Do not author table row counts, enum item counts, coverage counts, or other values derivable from the source data as duplicate constants.
-- Keep a value in product code only when it is an algorithm, protocol, format, or framework invariant rather than authorable game content.
+如果某个作者值只需要“全局起始时间”等单一语义，使用当前工程既有的全局配置形状；运行时索引由 July 时间事实与该作者值计算，不另建日期模型或规则版本字段，除非 GDD 明确赋予它们独立业务语义。
 
-## Editing and generation
+## 5. 枚举与闭合集合
 
-- Use the project's approved workbook tooling. If a helper script exists, use it rather than inventing a new writer.
-- Meta workbooks such as `__tables__.xlsx`, `__beans__.xlsx`, and `__enums__.xlsx` have special formats. Copying an established project pattern is safer than treating them as ordinary data sheets.
-- When a closed value set is consumed by both tables and product code, define it once in the applicable `__enums__.xlsx`, declare table columns with that enum type, author values with enum item aliases when that improves readability, and consume Luban's generated enum in code. Do not maintain a duplicate handwritten enum.
-- Invoke the project's full generation entrypoint. In the inspected seed this is `JulyGF/配置表/生成全部`.
-- After generation, inspect console errors and verify representative generated data/code consumed by the target module.
+被作者表和产品代码共同消费的闭合集合只定义一次：
 
-## Tool artifact boundary
+- 优先在适用的 `__enums__.xlsx` 定义；
+- 表字段使用生成枚举类型；
+- 产品代码直接使用生成枚举；
+- 不维护手写同义枚举或映射表。
 
-Workbook inspection and conversion tools must write scratch outputs to an isolated temporary directory, not beside authoring workbooks. Files such as `*.inspect.ndjson`, rendered previews, scratch workbook copies, and generation logs are diagnostic artifacts, not project deliverables.
+仅由算法内部使用且不是作者内容的闭合集合可留在普通代码中。
 
-Before reporting completion, search the Luban authoring directory and the repository working tree for tool-created residue. Remove only artifacts created by the current workflow, preserve unrelated pre-existing files, and verify that no diagnostic sidecar was left in the delivered source directories.
+## 6. 工作簿命名与维护
 
-## Failure behavior
+遵守当前工程相邻作者源约定。新名称应表达最窄业务概念，并与元表中的类型身份一致。
 
-Malformed external data should fail at generation or load validation with a precise error. Prefer expressing authoring constraints in Luban schema/generation when supported. Product code must not repeat generated field-type checks, key uniqueness, enum validity, table cardinality, or coverage scans merely because the data originated outside the process; add runtime validation only for a real condition not already established by generation/load and state the required business response. Do not add runtime defaults merely to mask a broken authoring table. Runtime fallback is justified only when the GDD explicitly permits a recoverable business state and defines the observable degraded behavior.
+重命名作者工作簿时，在同一 MDD 白名单内同步修改所有作者源引用和元表。全量生成成功后，新的作者路径才算成立。
+
+元表具有特殊格式，不把它们当作普通数据表写入。优先使用当前工程已有工作簿工具和编辑入口。
+
+## 7. 生成与检查
+
+实施顺序：
+
+1. 按 MDD schema 修改作者源；
+2. 运行当前项目的全量生成入口；
+3. 检查生成过程和 Unity Console；
+4. 检查代表性生成 C# 类型；
+5. 检查代表性生成数据；
+6. 确认产品消费者直接使用生成合同；
+7. 搜索作者目录和工作树中的本次工具残留。
+
+工作簿检查、转换或渲染工具必须把临时输出放到隔离临时目录。只清理由本次操作产生的临时文件，不删除用户已有文件。
+
+## 8. 失败合同
+
+作者输入是不可信边界，优先在 schema、生成或加载入口验证一次。生成链已经保证的字段类型、主键唯一、枚举合法和表结构，产品下游代码直接信任，不重复扫描。
+
+格式或内容错误应在最接近作者边界的位置给出精确失败。只有 GDD 明确允许恢复状态并定义可观察降级时才使用运行时回退；不能用默认值掩盖破损配置。

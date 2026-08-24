@@ -1,114 +1,93 @@
-# July AI Workflow 设计
+# July AI Workflow architecture
 
-## 目标
+## Purpose
 
-本工作流面向已有策划案的 July/Luban Unity 项目，解决两件事：
+The workflow prevents product code generation from outrunning product and technical design. It first establishes one reviewable, complete current-version design, then treats a single user-selected MDD as the only implementation authority.
 
-1. 从完整产品设计中发现全部项目能力，并按项目能力组织可人工审查的模块；
-2. 按“全部模块 → 全部 View → 玩家功能联通”渐进生成和实现，而不是一次生成跨越所有责任的功能切片。
+## External interface
 
-用户明确指定的 MDD 是当前执行接口。工作流不保存中央状态、不自动选择下一项，也不代替用户确认。
+The skill exposes two actions only:
 
-## 核心模型
+1. **Complete project design** — discuss structural decisions and create or update the GDD, index, every module MDD, and every View MDD for the declared current-version scope.
+2. **Implement specified MDD** — implement exactly one user-named module or View MDD and validate the observable result.
 
-### 项目流程
+There is no workflow phase metadata, automatic continuation, or MDD category outside Modules and Views.
 
-GDD 描述完整玩家体验。工作流遍历全部主要流程，只用于检查项目能力覆盖，不把流程直接转成代码边界、全局状态图或统一运行时协调层。
+## Design hierarchy
 
-### 项目能力模块
+```text
+策划案
+  └── GDD: product facts and complete player experience
+       └── 索引: fact ownership, modules, dependencies, Views, implementation waves
+            ├── Modules MDDs: capability implementation contracts
+            └── Views MDDs: presentation implementation contracts
+```
 
-模块是项目中稳定、可独立命名、定位和维护的能力。模块内容由实现该能力所需的 July 角色和内部类型组成，例如：
+The GDD contains product language only. Technical names begin in the index and are fully specified in the corresponding MDDs.
 
-- Store + Data + Events；
-- 一个长期 System；
-- 一个或多个有界 Procedure；
-- Store + System；
-- System + 多个内部策略或路由；
-- 普通确定性规则和值类型。
+## Design derivation
 
-状态所有权、不变量、生命周期和规则复杂度用于设计模块内部与检查模块大小，不是所有模块统一的成立门槛。模块不按完整流程、技术层、表格或 DTO 集合拆分。
+For every complete player flow, the workflow identifies player-visible facts and actions first. It then determines each fact's single authority and every action's owning capability. Only after ownership is stable does it select JulyArch roles, configuration schemas, types, interfaces, and files.
 
-### View
+New product types pass a necessity review. A type is justified only when it owns behavior, an invariant, runtime state, lifecycle, or a meaningful error contract. Static authored facts use Luban's generated types directly. Derived values remain calculations rather than duplicated authored or stored fields.
 
-只有全部模块确认后才进入 View 阶段。先形成完整 View 清单，再区分：
+Modules form a directed acyclic dependency graph. A cycle indicates incorrect ownership or responsibility and is fixed in design; events, interfaces, or Common/Core containers are not used to conceal it.
 
-- UI：始终有 Window；展示动态事实时使用 WindowData，发布意图或异步刷新时使用 Events；
-- 2D：始终有 View；业务驱动表现时使用 ViewData，交互、播放请求或异步刷新时使用 Events。
+## JulyArch role model
 
-不为完全静态、无业务输入且无交互的表现生成空 Data 或空 Events。
+- **Store** owns controlled runtime business state and publishes empty change notifications after consistent mutation.
+- **System** is a stable runtime capability managed or located through `ArchContext`; simplicity and current consumer count do not disqualify it.
+- **Procedure** performs one bounded operation, especially multistep, asynchronous, cancellable, or commit-oriented work.
+- **ordinary type** owns algorithms or value semantics that need no JulyArch lifecycle.
+- **View** owns Unity presentation and interaction.
 
-View 负责展示、表现和玩家意图，不复制模块业务规则。
+No role quota exists. A configuration-only module is valid when it owns stable authored business facts and needs no handwritten runtime wrapper.
 
-### 玩家功能联通
+## Window contract
 
-联通不是独立架构层。每项玩家行为先确定其发起的项目能力，再由该能力自然的 System、Procedure、Store 操作或普通类型调用其他模块、映射 ViewData 并驱动 View。
+Every Window has a WindowData object. The Window keeps the same Data instance for its open lifetime.
 
-找不到归属时先检查是否遗漏模块或角色，不创建 ApplicationSystem、总协调 Manager 或转发 Facade。真实联通可以反向暴露模块和 View 问题；对应 MDD 应退回调整，而不是永久冻结错误设计。
+```text
+Open Window
+  → WindowData constructor reads required Store/System facts
+  → Window renders from Data
 
-## 阶段
+Empty business event
+  → Window calls a targeted Data refresh method
+  → Data reads current Store/System facts
+  → Window redraws only the affected region
 
-### 1. GDD 与模块设计
+Button
+  → business command: call owning System public method
+  → pure presentation navigation: call UISystem directly
+```
 
-1. 从策划案建立 GDD。
-2. 检查当前项目、用户指定参考项目和固定版本 July 的代表结构，把采用与不照搬的证据写入骨架。
-3. 遍历全部项目流程，形成项目能力覆盖表。
-4. 生成骨架 MDD 和全部模块 MDD。
-5. 不生成 View、玩家功能联通代码、配置表或产品测试代码。
+WindowData is mutable to support GM/editor display checks. It implements only the query interfaces it actually needs. It has no `RefreshAll`; partial refresh methods are named by presentation responsibility. Business events carry no data. Windows do not assemble display facts from Store/System, mutate Stores, or run Procedures directly.
 
-### 2. 模块实现
-
-用户逐份指定模块 MDD。工作流校准当前项目、用户指定参考项目和固定 July 包，再建立该能力已确认的角色及能够独立确定的状态、生命周期和规则。
-
-只有 View 或具体联通才能确定的方法、事件和映射不提前猜测。模块 MDD 的 `已确认` 表示实际角色代码和验证证据已经由用户审查，不表示只认可设计文字。全部模块实现经用户确认后才进入 View 阶段。
-
-### 3. View 设计与实现
-
-1. 根据 GDD、参考图、Prefab、场景和参考项目形成完整 View 清单。
-2. 生成 UI/2D View MDD。
-3. 用户逐份实现并确认；完整清单全部确认后才能进入玩家功能联通。
-
-### 4. 玩家功能联通
-
-用户指定要完成的玩家行为。联通 MDD 确定发起能力、承载角色、参与模块、参与 View、数据映射和验证路径。编排落在项目能力自己的 July 角色中，不产生统一运行时协调层。
-
-### 5. 工具链与发布
-
-离线作者生产使用 Tooling MDD；平台构建和真机门禁使用 Release MDD。它们不伪装成运行时业务模块。
-
-## 目录
+## Product artifact tree
 
 ```text
 Design/Docs/
 ├── 策划案.md
 ├── GDD.md
 └── MDD/
-    ├── 骨架.md
-    ├── Modules/M001_<模块>.md
-    ├── Views/UI/U001_<视图>.md
-    ├── Views/2D/V001_<视图>.md
-    ├── Integrations/I001_<玩家功能>.md
-    ├── Tooling/T001_<工具>.md
-    └── Release/R001_<发布验收>.md
+    ├── 索引.md
+    ├── Modules/M001_<能力>.md
+    └── Views/V001_<视觉功能>.md
 ```
 
-产品运行时代码遵循目标项目证据。未修改的 Template_2022.3 默认直接使用：
+The index recommends implementation waves, but a wave is not a batch command. Each implementation request names exactly one MDD.
 
-```text
-Assets/Game/Scripts/Runtime/
-├── Modules/<项目能力>/
-└── Views/
-```
+## Deliberate exclusions
 
-不增加项目名、Application、Domain、Models 或 Content 总层。
+- Persistence provider, server/local storage choice, save/load timing, migrations, repositories, and placeholders.
+- Target-project test assemblies, unit or PlayMode tests, mocks, fakes, and fixtures.
+- A project-wide Application/coordinator layer.
+- Product-specific examples or external product paths in the plugin source.
+- Treating old gameplay code as design evidence during regeneration.
 
-## 状态与人工门禁
+## Implementation gate
 
-```text
-规划 → 可实现 → 待人工审查 → 已确认
-```
+Every MDD provides an exact file whitelist. Implementation first verifies the current project host and exact package APIs. It then changes only whitelisted product files and declared generated/configuration/registration outputs. A required change to ownership, roles, interfaces, dependencies, files, schema, or View behavior pauses implementation until the design is discussed and updated.
 
-AI 只能推进到待人工审查。用户要求调整已确认产物时，先退回可实现，完成修改和验证后重新等待确认。
-
-## 验证边界
-
-目标项目暂不生成单元测试、测试 asmdef、Mock、Fake 或 Fixture。根据范围使用编译、Unity Console、Luban 全量生成、Prefab/Inspector、编辑器手工路径和目标平台证据。插件仓库自身仍按仓库规则验证。
+Validation is proportional to the artifact: Unity compilation and Console review, Luban full generation, registration checks, Prefab/Inspector inspection, representative WindowData/GM display, repeatable editor/manual flow, and target-platform checks when applicable.
