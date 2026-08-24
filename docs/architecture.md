@@ -18,7 +18,7 @@ There is no workflow phase metadata, automatic continuation, or MDD category out
 ```text
 策划案
   └── GDD: product facts and complete player experience
-       └── 索引: fact ownership, modules, dependencies, Views, implementation waves
+       └── 索引: facts, action contracts, symbol providers, full dependency graph, topological order
             ├── Modules MDDs: capability implementation contracts
             └── Views MDDs: presentation implementation contracts
 ```
@@ -31,7 +31,9 @@ For every complete player flow, the workflow identifies player-visible facts and
 
 New product types pass a necessity review. A type is justified only when it owns behavior, an invariant, runtime state, lifecycle, or a meaningful error contract. Static authored facts use Luban's generated types directly. Derived values remain calculations rather than duplicated authored or stored fields.
 
-Modules form a directed acyclic dependency graph. A cycle indicates incorrect ownership or responsibility and is fixed in design; events, interfaces, or Common/Core containers are not used to conceal it.
+Each atomic player action receives one canonical action contract. Each cross-MDD product symbol receives one providing MDD. These contracts are shared by Module and View documents instead of being independently restated.
+
+All Module and View MDDs form one implementation dependency graph containing compile, Luban authoring, registration, Prefab, and runtime-contract edges. The graph is topologically ordered before numbering. Every MDD must compile and complete its own acceptance using only the stable host, its own whitelist, and earlier MDD outputs. A cycle indicates incorrect ownership, action boundaries, navigation, or MDD boundaries and is fixed in design; events, interfaces, string routing, placeholders, or Common/Core containers are not used to conceal it.
 
 ## JulyArch role model
 
@@ -76,11 +78,11 @@ Design/Docs/
     └── Views/V001_<视觉功能>.md
 ```
 
-The index recommends implementation waves, but a wave is not a batch command. Each implementation request names exactly one MDD.
+The index records an exact topological implementation order, and Module/View items may interleave. It is not a batch command; each implementation request still names exactly one MDD.
 
 ## Deliberate exclusions
 
-- Persistence provider, server/local storage choice, save/load timing, migrations, repositories, and placeholders.
+- Reusing a persistence provider for product Stores, save/load calls or timing, save failure, cross-launch recovery, server/local storage choice, migrations, repositories, and placeholders.
 - Target-project test assemblies, unit or PlayMode tests, mocks, fakes, and fixtures.
 - A project-wide Application/coordinator layer.
 - Product-specific examples or external product paths in the plugin source.
@@ -88,6 +90,6 @@ The index recommends implementation waves, but a wave is not a batch command. Ea
 
 ## Implementation gate
 
-Every MDD provides an exact file whitelist. Implementation first verifies the current project host and exact package APIs. It then changes only whitelisted product files and declared generated/configuration/registration outputs. A required change to ownership, roles, interfaces, dependencies, files, schema, or View behavior pauses implementation until the design is discussed and updated.
+Every MDD provides an exact file whitelist and closure proof. Implementation first verifies its prerequisites, action contracts, symbol providers, current project host, and exact package APIs. It then changes only whitelisted product files and declared generated/configuration/registration outputs. A forward reference, signature conflict, or required change to ownership, roles, interfaces, dependencies, files, schema, or View behavior is a complete-design defect and pauses implementation until the design is discussed and updated.
 
 Validation is proportional to the artifact: Unity compilation and Console review, Luban full generation, registration checks, Prefab/Inspector inspection, representative WindowData/GM display, repeatable editor/manual flow, and target-platform checks when applicable.

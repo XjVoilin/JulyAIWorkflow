@@ -1,6 +1,6 @@
 {
   "name": "july-ai-workflow",
-  "version": "0.2.0+codex.20260824125603",
+  "version": "0.2.1+codex.20260824153532",
   "description": "为现有 July/Luban Unity 项目完成当前版本的完整设计，或严格按用户指定的单份 MDD 实施",
   "author": {
     "name": "July"
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "July AI Workflow",
     "shortDescription": "完整设计项目，或严格实施指定 MDD。",
-    "longDescription": "仅在显式调用后运行。先讨论并完成策划案、GDD、索引、全部模块 MDD 与全部 View MDD，再按用户指定的单份 MDD 实施。设计明确业务事实所有权、JulyArch 角色、接口、伪代码、配置、文件白名单与验收，不维护流程状态，不自动续跑。",
+    "longDescription": "仅在显式调用后运行。先讨论并完成策划案、GDD、索引、全部模块 MDD 与全部 View MDD；通过唯一动作合同、产品符号提供表和全产物拓扑闭包证明每份 MDD 可独立实施，再按用户指定的单份 MDD 执行。不维护流程状态，不自动续跑。",
     "developerName": "July",
     "category": "Productivity",
     "capabilities": [],

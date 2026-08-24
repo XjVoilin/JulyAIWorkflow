@@ -21,11 +21,11 @@ Design/Docs/
     └── Views/
 ```
 
-`索引.md` owns scope coverage, business-fact ownership, module boundaries, acyclic dependencies, the full View inventory, and recommended implementation waves. Module and View MDDs contain concrete data sketches, public interfaces, pseudocode, configuration contracts, exact file whitelists, and acceptance paths so design problems can be found before generation.
+`索引.md` owns scope coverage, business-fact ownership, one canonical contract per atomic player action, one provider per cross-MDD product symbol, the full Module/View dependency graph, and its topological implementation order. Every MDD must be independently compilable and acceptable using only earlier outputs. Module and View MDDs contain concrete data sketches, public interfaces, pseudocode, configuration contracts, exact file whitelists, closure proofs, and acceptance paths.
 
-The second action implements exactly the MDD named by the user. It cannot invent extra product files or silently alter the approved role, ownership, interface, dependency, configuration, or View contracts. When implementation reveals a design change, the workflow stops for discussion and updates the design first.
+The second action implements exactly the MDD named by the user after verifying its earlier prerequisites from the index. It cannot invent extra product files or silently alter the approved role, ownership, interface, dependency, configuration, or View contracts. A forward reference or contract conflict is reported as a complete-design defect, not treated as a normal reason to wait for later work.
 
-The workflow deliberately excludes progress metadata, extra document categories outside Modules and Views, persistence design, target-project test code, automatic next-item selection, and dependencies outside the current product.
+The workflow deliberately excludes progress metadata, extra document categories outside Modules and Views, persistence integration and save/load behavior, target-project test code, automatic next-item selection, and dependencies outside the current product.
 
 ## Repository layout
 

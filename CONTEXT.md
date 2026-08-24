@@ -18,7 +18,7 @@ A stable, independently nameable product capability. A module owns the runtime s
 A player-visible screen or visual feature. UI Windows and world/scene Views are documented by visual responsibility, without creating separate technical documentation hierarchies.
 
 **索引**
-`Design/Docs/MDD/索引.md`, the complete technical map. It records scope coverage, fact ownership, module boundaries, acyclic dependencies, the complete View inventory, MDD links, and recommended implementation waves. Waves are advice only.
+`Design/Docs/MDD/索引.md`, the complete technical map. It records scope coverage, fact ownership, canonical action contracts, product-symbol providers, the complete Module/View dependency graph, MDD links, closure proofs, and the exact topological implementation order. The order does not authorize automatic continuation.
 
 **模块 MDD**
 The full implementation contract for one business module: responsibility, facts, roles, data structures, interfaces, algorithms, dependencies, consumers, invariants, configuration, registration, exact file whitelist, and acceptance.
@@ -49,3 +49,12 @@ A notification that a named business fact changed. It carries no display data. A
 
 **file whitelist**
 The complete list of product files an MDD may create or modify. Any additional file or design change requires discussion and an MDD update before implementation continues.
+
+**action contract**
+The single authoritative row for one atomic player action: ID, owner, canonical signature, precondition, success/failure, and navigation owner. Every Module/View occurrence references it exactly.
+
+**product symbol provider**
+The one MDD that creates a handwritten type/member/event, Luban generated type, Window/Data, Prefab script, resource contract, or registration item used by other MDDs.
+
+**MDD implementation closure**
+The guarantee that one MDD can be implemented, compiled, and accepted using only the stable host, fixed package APIs, its own whitelist, and outputs from earlier MDDs in the global topological order.
