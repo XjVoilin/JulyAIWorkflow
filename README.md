@@ -55,6 +55,7 @@ $july-game-pipeline 按照 @DesignDoc/MDD/M002_每日题目.md 实施
 - 只修改 C# 代码、Luban 作者源以及本流程生成的 GDD/MDD 文档。
 - 使用项目当前真实存在的 JulyFramework、JulyArch、UI 组件和 Luban 接口。
 - 每个 Window 都必须有 WindowData；Window 只根据 Data 渲染，并通过 System 发起业务动作。
+- 项目 System 直接使用具体类型；不生成项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装或无明确边界的数据快照。
 - 普通 MDD 实施完成后要求编译通过，但不要求立即形成可见或可玩的完整闭环。
 - 普通 MDD 的前置依赖必须存在可执行顺序，不能循环等待。
 - 跨 MDD 的延后连接登记到 `M999_项目集成收敛.md`，最后由用户明确指定后统一实施。
