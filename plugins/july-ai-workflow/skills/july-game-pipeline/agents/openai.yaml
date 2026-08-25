@@ -1,6 +1,6 @@
 interface:
   display_name: "July 游戏研发流程"
-  short_description: "完整设计 July 项目，或严格实施指定 MDD"
-  default_prompt: "使用 $july-game-pipeline 完成当前版本的完整项目设计。"
+  short_description: "分步生成 GDD、MDD，并严格实施一份指定 MDD"
+  default_prompt: "使用 $july-game-pipeline 按照策划案生成 GDD。"
 policy:
   allow_implicit_invocation: false
