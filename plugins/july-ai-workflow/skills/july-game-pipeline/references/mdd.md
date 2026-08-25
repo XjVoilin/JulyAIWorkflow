@@ -224,6 +224,7 @@ M999 是一份特殊 MDD，不是新的插件动作。它只记录普通 MDD 已
 - View 与普通功能使用统一 MDD；
 - 每个 Window 类型名以 `UI` 开头、以 `Window` 结尾，`UIWindowID` 同名常量与 `TbUIWindow` ID 一致；
 - 没有项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装或无明确边界的数据快照；
+- 没有纯转发配置 System，配置角色、命名和失败语义与实际职责一致；
 - 没有生成本流程范围之外的产物；
 - 只修改了目标 GDD 对应的 MDD 集合。
 
