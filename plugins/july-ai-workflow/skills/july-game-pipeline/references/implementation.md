@@ -97,6 +97,8 @@ MDD 生成阶段已经决定 Store、System、Procedure、Window、WindowData、
 - Window 只根据 WindowData 渲染显示，并通过 System 发起业务动作。
 - Window 不直接读取 Store，不在自身内部推导或保存业务状态。
 - 复杂界面按独立 UI 区域拆为 GameView；GameView 使用自己的显示数据，并服从所属 Window 的组合关系。
+- Window 类型名必须以 `UI` 开头、以 `Window` 结尾。对应 ID 统一写入 `UIWindowID` 纯常量静态类，字段名与 Window 类型名完全一致。
+- 创建、重命名或删除 Window 时，同步修改 `UIWindowID` 和 Luban 作者源 `TbUIWindow`；常量值与表中 ID 必须一致，不创建其他 Window ID 类或运行时注册服务。
 - 只编写代码和已有配置，不创建或修改 Prefab、Scene、图片、材质、动画、音频或美术计划。
 
 涉及 UI 时同时遵循 [july-ui-components.md](july-ui-components.md)，以项目中的实际组件 API 为准。

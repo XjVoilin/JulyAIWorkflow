@@ -47,3 +47,28 @@
 Window 负责页面级生命周期、导航和子区域协调。独立显示、重复交互、拖拽或动画区域可以拆成 GameView。
 
 拆分依据是职责和交互生命周期，不是字段数量。WindowData 可以包含子 ViewData，Window 把对应数据交给 GameView；子 GameView 不直接读取 Store 来决定显示。
+
+## 6. Window 命名与 ID
+
+- Window 类型名固定以 `UI` 开头、以 `Window` 结尾，例如 `UIAwardDisplayWindow`。
+- 全部 Window ID 统一放在名为 `UIWindowID` 的 `public static class` 中；这是纯常量容器，不是静态业务类。
+- 每个字段使用 `public const int`，字段名必须与对应 Window 类型名完全一致。
+- 常量值必须与 Luban 作者源 `TbUIWindow` 中该 Window 的 ID 完全一致；不得另建 `UIWindowIds`、分模块 ID 类、别名字段或运行时 ID 注册服务。
+- MDD 创建、重命名或删除 Window 时，必须在同一 MDD 中明确对应的 `UIWindowID` 与 `TbUIWindow` 作者源改动。实施时以项目现有表结构和编号规则为准，同时完成三者的一致修改。
+- `UIWindowID` 类注释说明其与 `TbUIWindow` 的对应关系；每个字段使用简洁中文注释说明窗口用途。
+
+标准形态：
+
+```csharp
+/// <summary>
+/// UI 窗口 ID 常量
+/// 与配置表 TbUIWindow 中的 ID 对应
+/// </summary>
+public static class UIWindowID
+{
+    /// <summary>
+    /// 通用领奖界面
+    /// </summary>
+    public const int UIAwardDisplayWindow = 11;
+}
+```
