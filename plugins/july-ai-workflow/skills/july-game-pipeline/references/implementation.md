@@ -22,6 +22,7 @@
 - 目标 MDD 存在会改变职责、角色或公开契约的关键歧义；
 - 当前代码与 MDD 冲突，且无法在不改变 MDD 设计的前提下适配。
 - 目标 MDD 要求创建项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装或没有明确边界的数据快照；此时应先更新 MDD，不能在实施时静默改写设计。
+- 目标 MDD 明确要求把产品运行时代码放入顶层 `Systems`、`Stores`、`Procedures` 或同义角色目录；此时应先更新 MDD。
 
 ## 2. 唯一功能授权
 
@@ -54,6 +55,12 @@ MDD 生成阶段已经决定 Store、System、Procedure、Window、WindowData、
 - 结算数据等 GDD 定义的真实业务计算产物可以使用独立类型，不改成 `bool`。
 - 不创建没有明确边界需要的 `XxxSnapshot`。WindowData、存档结构，以及 MDD 明确要求的回放、跨帧冻结或提交一致性数据不在此禁令内。
 - 内部不变量被破坏时快速失败，不用 `false`、默认值或日志后继续执行来隐藏错误。
+
+### 3.2 代码目录
+
+- 产品运行时代码按业务模块放入 `Assets/Game/Scripts/Runtime/Modules/<模块名>/`，不按 Store、System、Procedure 或普通类型等角色创建顶层目录。
+- `Views`、`Generated`、`Shared` 等模板已有专用目录保持原有职责；Window、WindowData、GameView 和生成代码继续使用对应专用目录。
+- MDD 已写明且符合上述规则的路径必须遵循；旧 MDD 未写路径时，根据类型的业务职责选择对应模块目录。
 
 ## 4. 前置依赖与延后集成
 

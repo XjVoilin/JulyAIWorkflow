@@ -140,3 +140,9 @@ Luban 保存策划配置事实。具体表、Bean、枚举和生成方式以当�
 - 内部不变量被破坏时使用异常、断言或自然失败，不用 `bool` 和日志伪装成可恢复的业务失败。
 - 不为了解耦、防御未来变化或方便读取而创建 `XxxSnapshot`。模块内部直接使用已有 Store Data、值对象或配置类型。
 - `WindowData` 是 Window 的显式显示输入和 GM 测试入口，不属于领域快照；存档边界，以及 GDD/MDD 明确要求的回放、跨帧冻结或提交一致性数据，可以使用独立结构。
+
+## 12. 项目代码目录
+
+- 产品运行时代码按业务模块放入 `Assets/Game/Scripts/Runtime/Modules/<模块名>/`。Store、System、Procedure 和普通业务类型是 JulyArch 角色，不据此创建顶层 `Systems`、`Stores`、`Procedures` 或同义目录。
+- `Views`、`Generated`、`Shared` 等模板已有专用目录继续承担原有职责；Window、WindowData、GameView 和生成代码不因本规则迁入 `Modules`。
+- MDD 为本次创建或修改的主要产品类型写明准确文件路径。旧 MDD 未写路径时，实施阶段根据业务职责选择 `Runtime/Modules/<模块名>`，不得退回按角色分目录。
