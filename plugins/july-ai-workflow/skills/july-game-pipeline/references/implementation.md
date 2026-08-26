@@ -23,6 +23,8 @@
 - 当前代码与 MDD 冲突，且无法在不改变 MDD 设计的前提下适配。
 - 目标 MDD 要求创建项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装或没有明确边界的数据快照；此时应先更新 MDD，不能在实施时静默改写设计。
 - 目标 MDD 明确要求把产品运行时代码放入顶层 `Systems`、`Stores`、`Procedures` 或同义角色目录；此时应先更新 MDD。
+- 目标 MDD 会使同一业务模块出现第二个项目业务 System 或 Store，或者要求建立项目业务 ConfigSystem、ContentSystem 或配置聚合入口；此时应先更新 MDD。
+- 目标 MDD 的模块无法说明一个明确业务职责，或其 System、Store 与模块职责范围不一致；此时应先更新 MDD。
 
 ## 2. 唯一功能授权
 
@@ -58,7 +60,9 @@ MDD 生成阶段已经决定 Store、System、Procedure、Window、WindowData、
 
 ### 3.2 代码目录
 
-- 产品运行时代码按业务模块放入 `Assets/Game/Scripts/Runtime/Modules/<模块名>/`，不按 Store、System、Procedure 或普通类型等角色创建顶层目录。
+- 产品运行时代码按业务模块放入 `Assets/Game/Scripts/Runtime/Modules/<模块名>/`。模块围绕一个权威运行时状态及其行为，或者一个能够独立存在的无状态业务能力，不按技术层次、配置来源、JulyArch 角色或宽泛概念归组。
+- 每个业务模块最多一个项目业务 System、最多一个项目业务 Store；出现第二个时停止并先调整模块边界，不把无关能力或状态强行合并。
+- 模块、System 和 Store 的名称与职责范围必须一致；只做少量框架调用转发的目录或类型不构成模块。
 - `Views`、`Generated`、`Shared` 等模板已有专用目录保持原有职责；Window、WindowData、GameView 和生成代码继续使用对应专用目录。
 - MDD 已写明且符合上述规则的路径必须遵循；旧 MDD 未写路径时，根据类型的业务职责选择对应模块目录。
 
@@ -118,6 +122,8 @@ MDD 生成阶段已经决定 Store、System、Procedure、Window、WindowData、
 2. 使用项目已经存在的生成入口；
 3. 将生成结果视为派生产物；
 4. 不手工修改生成代码或生成数据来绕过作者源。
+
+各业务 System 直接通过框架 `IConfigSystem` 获取本模块需要的表，不创建项目业务 ConfigSystem、ContentSystem 或配置聚合入口。已进入 Luban 的数值、名单、顺序、配额、文案和当前内容不在 C# 中以字面量重复表达或逐项核对。运行时只在最接近消费方的边界校验算法确实依赖的结构、合法范围和必需引用。
 
 如果找不到项目已有的作者源或生成方式，停止并说明缺失信息。
 
