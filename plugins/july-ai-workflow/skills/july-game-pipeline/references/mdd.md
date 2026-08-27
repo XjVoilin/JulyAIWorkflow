@@ -101,6 +101,8 @@ MDD/
 
 产品运行时代码按已确定的业务模块放入 `Assets/Game/Scripts/Runtime/Modules/<模块名>/`，不按 Store、System、Procedure 等角色创建顶层目录。`Views`、`Generated`、`Shared` 等模板已有专用目录保持原有职责。已进入 Luban 的具体配置事实不在 C# 中重复设计。
 
+新增 Luban 业务作者源 Excel 文件在实施范围中写出准确路径，并使用 `<中文业务名>_<英文标识>.xlsx`。英文标识沿用当前工程已有风格；Luban 控制文件和已有作者源文件名不受新增命名规则影响。
+
 ## 7. 依赖
 
 每份 MDD 只区分：
@@ -162,7 +164,7 @@ MDD/
 <仅在涉及 Window、WindowData 或 GameView 时填写；每个 Window 同时明确规范类型名、UIWindowID 常量和 TbUIWindow 作者源记录>
 
 ## Luban 配置
-<仅在涉及作者源时填写>
+<仅在涉及作者源时填写；新增业务 Excel 使用“中文业务名_英文标识.xlsx”，并写明表、Bean、枚举和生成入口>
 
 ## 验收标准
 <职责、范围、TODO、生成和编译检查>
@@ -240,6 +242,7 @@ M999 是一份特殊 MDD，不是新的插件动作。它只记录普通 MDD 已
 - 没有项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装或无明确边界的数据快照；
 - 每个业务模块最多一个项目业务 System、最多一个项目业务 Store，且名称和职责范围一致；
 - 没有项目业务 ConfigSystem、ContentSystem 或配置聚合入口，没有在 C# 中重复 Luban 的具体配置事实；
+- 新增 Luban 业务作者源 Excel 使用“中文业务名_英文标识.xlsx”，控制文件和已有作者源未被无依据重命名；
 - 每个模块都能说明单一业务职责及明确不负责的相邻职责，没有宽泛收纳模块或纯转发模块；
 - 产品运行时代码按业务模块位于 `Runtime/Modules/<模块名>`，没有按 JulyArch 角色创建顶层 `Systems`、`Stores` 或 `Procedures` 目录；
 - 没有生成本流程范围之外的产物；

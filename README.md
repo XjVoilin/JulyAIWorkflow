@@ -59,6 +59,7 @@ $july-game-pipeline 按照 @DesignDoc/MDD/M002_每日题目.md 实施
 - 项目 System 直接使用具体类型；不生成项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装或无明确边界的数据快照。
 - 产品运行时代码按明确业务职责放在 `Runtime/Modules/<模块名>`；每个业务模块最多一个项目业务 System、最多一个项目业务 Store，不建立宽泛收纳模块或按 JulyArch 角色分类的顶层目录。
 - 第一版不创建项目业务 ConfigSystem、ContentSystem 或配置聚合入口；各业务模块直接使用框架 `IConfigSystem`，C# 不重复 Luban 已保存的具体配置事实。
+- 新增 Luban 业务作者源 Excel 使用“中文业务名_英文标识.xlsx”；控制文件保持 Luban 固定名称，已有作者源不自动重命名。
 - 普通 MDD 实施完成后要求编译通过，但不要求立即形成可见或可玩的完整闭环。
 - 普通 MDD 的前置依赖必须存在可执行顺序，不能循环等待。
 - 跨 MDD 的延后连接登记到 `M999_项目集成收敛.md`，最后由用户明确指定后统一实施。
