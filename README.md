@@ -1,10 +1,11 @@
 # July AI Workflow
 
-面向 JulyFramework、JulyArch 与 Luban 模板项目的 Codex 插件。插件只在显式调用 `$july-game-pipeline` 后运行，并将设计与实施拆成三个彼此独立的动作：
+面向 JulyFramework、JulyArch 与 Luban 模板项目的 Codex 插件。插件只在显式调用 `$july-game-pipeline` 后运行，并将设计与实施拆成四个彼此独立的动作：
 
 1. 按照策划案生成 GDD；
-2. 按照 GDD 生成全部 MDD；
-3. 按照用户指定的一份 MDD 实施代码与配置。
+2. 按照 GDD 生成模块设计；
+3. 按照模块设计生成全部 MDD；
+4. 按照用户指定的一份 MDD 实施代码与配置。
 
 插件不维护流程状态，也不会自动进入下一步。
 
@@ -26,13 +27,21 @@ $july-game-pipeline 按照 @DesignDoc/策划案.md 生成 GDD
 
 GDD 只描述游戏产品设计，不写 JulyArch、类、接口、文件路径或 Luban 技术方案。遇到会实质影响产品设计的歧义时，插件一次只询问一个问题，并给出推荐项。
 
-### GDD 生成全部 MDD
+### GDD 生成模块设计
 
 ```text
-$july-game-pipeline 按照 @DesignDoc/GDD.md 生成全部 MDD
+$july-game-pipeline 按照 @DesignDoc/GDD.md 生成模块设计
 ```
 
-插件先从完整 GDD 提取业务决策并建立候选模块图，经过一次全局归一化后再拆分 MDD，生成一个简洁索引、全部普通 MDD，以及 `M999_项目集成收敛.md`。MDD 负责确定 JulyArch 角色、跨职责契约、WindowData、UI 代码结构与 Luban 作者源改动；全部写完后还会再次检查模块与文档的一致性。
+插件从完整 GDD 提取业务决策，结合当前工程建立候选模块图并执行全局归一化，生成与 GDD 同目录的 `模块设计.md`。模块设计记录业务决策归属、模块职责、权威状态、稳定语义接口、事务编排、依赖方向和 JulyArch 角色规划，供用户在进入 MDD 前独立审查。
+
+### 模块设计生成全部 MDD
+
+```text
+$july-game-pipeline 按照 @DesignDoc/模块设计.md 生成全部 MDD
+```
+
+模块设计记录唯一来源 GDD；插件会自动读取该 GDD 取得产品规则，用户不需要在口令中再次指定。这个阶段不能重新拆分模块，只能把已确认的模块职责和角色规划细化为具体类型、公开签名、文件路径和适合逐份实施的 MDD，并生成简洁索引与 `M999_项目集成收敛.md`。
 
 ### 实施一份 MDD
 
@@ -58,6 +67,7 @@ $july-game-pipeline 按照 @DesignDoc/MDD/M002_每日题目.md 实施
 - Window 类型名固定以 `UI` 开头、以 `Window` 结尾；对应常量统一位于 `UIWindowID`，字段名与 Window 一致并对应 `TbUIWindow` 的 ID。
 - 项目 System 直接使用具体类型；不生成项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装或无明确边界的数据快照。
 - 产品运行时代码按独立业务决策及一致性所有权放在 `Runtime/Modules/<模块名>`；共同变化是归组证据，模块数量更少只在边界同样正确时作为次级选择。模块边界先于 JulyArch 角色确定，每个模块最多一个项目业务 System、最多一个项目业务 Store，也可以缺少任一角色；`Modules` 下不要求独立 asmdef。
+- 模块设计记录来源 GDD；每份 MDD 同时记录来源模块设计和来源 GDD。产品规则以 GDD 为准，模块职责和角色规划以模块设计为准，具体实施范围以当前 MDD 为准。
 - 第一版不创建项目业务 ConfigSystem、ContentSystem 或配置聚合入口；各业务模块直接使用框架 `IConfigSystem`，C# 不重复 Luban 已保存的具体配置事实。
 - 默认信任 Framework 生命周期、Luban 生成配置和模块内部契约；不生成启动巡检、重复状态校验或只为更友好报错存在的防御代码，只有错误会继续运行并污染状态或 GDD 明确要求恢复时才校验。
 - 新增 Luban 业务作者源 Excel 使用“中文业务名_英文标识.xlsx”；控制文件保持 Luban 固定名称，已有作者源不自动重命名。
@@ -77,10 +87,11 @@ plugins/july-ai-workflow/
     agents/openai.yaml
     references/
       gdd.md
+      module-design.md
       mdd.md
       implementation.md
       july-architecture.md
       july-ui-components.md
 ```
 
-Skill 保持最小结构。规则集中在入口和五份按动作加载的参考文档中，不依赖脚本、流程状态文件或额外机器契约。
+Skill 保持最小结构。规则集中在入口和六份按动作加载的参考文档中，不依赖脚本、流程状态文件或额外机器契约。

@@ -1,6 +1,6 @@
 ---
 name: july-game-pipeline
-description: 仅在用户显式调用后，将游戏策划案生成 GDD、将 GDD 生成全部 MDD，或严格实施一份指定 MDD。适用于使用 JulyFramework 与 Luban 的 Unity 项目；不生成图片、Prefab 或测试。
+description: 仅在用户显式调用后，将游戏策划案生成 GDD、将 GDD 生成模块设计、将模块设计生成全部 MDD，或严格实施一份指定 MDD。适用于使用 JulyFramework 与 Luban 的 Unity 项目；不生成图片、Prefab 或测试。
 ---
 
 # July 游戏研发流程
@@ -8,10 +8,11 @@ description: 仅在用户显式调用后，将游戏策划案生成 GDD、将 GD
 只执行用户当前明确要求的一个动作：
 
 1. 策划案生成、更新或重新生成 GDD；
-2. GDD 生成或更新全部 MDD；
-3. 按照用户 `@` 指定的一份 MDD 实施。
+2. GDD 生成或更新模块设计；
+3. 模块设计生成或更新全部 MDD；
+4. 按照用户 `@` 指定的一份 MDD 实施。
 
-三个动作彼此独立。不要自动继续下一阶段，不选择下一份 MDD，不实施依赖 MDD，不创建工作流状态。
+四个动作彼此独立。不要自动继续下一阶段，不选择下一份 MDD，不实施依赖 MDD，不创建工作流状态。
 
 ## 动作完成契约
 
@@ -26,16 +27,23 @@ description: 仅在用户显式调用后，将游戏策划案生成 GDD、将 GD
 
 读取 [references/gdd.md](references/gdd.md)，只执行其中的 GDD 流程。这个动作不检查 Unity、JulyFramework 或 Luban。
 
-### GDD 到 MDD
+### GDD 到模块设计
+
+读取：
+
+- [references/module-design.md](references/module-design.md)
+- [references/july-architecture.md](references/july-architecture.md)
+
+检查当前项目已有产品代码、状态、配置和注册关系，只生成或更新模块设计，不生成 MDD。
+
+### 模块设计到 MDD
 
 读取：
 
 - [references/mdd.md](references/mdd.md)
 - [references/july-architecture.md](references/july-architecture.md)
 
-检查当前项目实际安装的 JulyFramework、Luban 和已有代码。某份 MDD 涉及 View 时，再读取 [references/july-ui-components.md](references/july-ui-components.md)。
-
-先从完整 GDD 建立候选模块图并执行全局归一化，再分配 JulyArch 角色和拆分 MDD；全部 MDD 写入后按实际产物再次检查模块与文档一致性。
+根据模块设计记录的来源路径读取对应 GDD，并检查当前项目实际安装的 JulyFramework、Luban 和已有代码。某份 MDD 涉及 View 时，再读取 [references/july-ui-components.md](references/july-ui-components.md)。这个动作不得重新拆分模块。
 
 ### 实施指定 MDD
 
@@ -48,21 +56,21 @@ description: 仅在用户显式调用后，将游戏策划案生成 GDD、将 GD
 
 ## 文件选择
 
-用户通过 `@文件` 指定时使用该文件。未指定时，只使用当前项目中名称明确且唯一的策划案或 GDD；找不到时报告未执行，存在多个候选时询问用户，不自行猜测。
+用户通过 `@文件` 指定时使用该文件。未指定时，只使用当前项目中名称明确且唯一的策划案、GDD 或模块设计；找不到时报告未执行，存在多个候选时询问用户，不自行猜测。
 
-未指定输出位置时，GDD 与策划案同目录，MDD 位于 GDD 同级的 `MDD` 目录。不要求固定的设计目录名称。
+未指定输出位置时，GDD 与策划案同目录，模块设计以 `模块设计.md` 位于 GDD 同目录，MDD 位于模块设计同级的 `MDD` 目录。不要求固定的设计目录名称。
 
 目标已存在时：
 
 - “生成”不覆盖，停止并说明目标已存在；
 - “更新”在现有文档上修改；
 - “重新生成”仅适用于 GDD，并且只在用户明确授权时重写；
-- MDD 第一版只支持生成全部或更新全部，不支持重新生成；
+- 模块设计只支持生成或整体更新；MDD 只支持生成全部或更新全部；两者都不支持重新生成；
 - 不自动删除旧设计文档。
 
 ## 共同边界
 
-- 默认使用中文编写说明、GDD、MDD、索引和实施报告；代码标识符使用英文。
+- 默认使用中文编写说明、GDD、模块设计、MDD、索引和实施报告；代码标识符使用英文。
 - 不读取其他产品项目，不把其他产品结构作为设计依据。
 - 不建立项目画像，不要求目标项目提供额外说明 Markdown。
 - 不自动安装 July 包；需要的能力不存在时报告。
