@@ -24,7 +24,7 @@
 - 目标 MDD 要求创建项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装或没有明确边界的数据快照；此时应先更新 MDD，不能在实施时静默改写设计。
 - 目标 MDD 明确要求把产品运行时代码放入顶层 `Systems`、`Stores`、`Procedures` 或同义角色目录；此时应先更新 MDD。
 - 目标 MDD 会使同一业务模块出现第二个项目业务 System 或 Store，或者要求建立项目业务 ConfigSystem、ContentSystem 或配置聚合入口；此时应先更新 MDD。
-- 目标 MDD 的模块无法说明一个明确业务职责，或其 System、Store 与模块职责范围不一致；此时应先更新 MDD。
+- 目标 MDD 的模块无法说明共同变化的业务知识和明确排除，新增 System 入口引入第二项长期业务能力，或 Store 状态所有权与原子修改不清楚；此时应先更新 MDD。
 - 目标 MDD 要求新增不符合 `<中文业务名>_<英文标识>.xlsx` 的 Luban 业务作者源 Excel；此时应先更新 MDD。Luban 控制文件不适用该规则。
 
 ## 2. 唯一功能授权
@@ -47,6 +47,7 @@ MDD 生成阶段已经决定 Store、System、Procedure、Window、WindowData、
 - Window 通过 System 发起业务动作；System 根据 MDD 编排 Procedure。
 - Store 只通过具有业务语义的方法改变状态，不向外暴露任意写入口。
 - 普通类型承载不属于 JulyArch 角色的局部职责。
+- 普通类型可以分解同一 System 的规则和算法，但不能用来掩盖该 System 已经公开并编排第二项长期业务能力。
 
 具体角色边界遵循 [july-architecture.md](july-architecture.md)。
 
@@ -64,9 +65,10 @@ MDD 生成阶段已经决定 Store、System、Procedure、Window、WindowData、
 
 ### 3.2 代码目录
 
-- 产品运行时代码按业务模块放入 `Assets/Game/Scripts/Runtime/Modules/<模块名>/`。模块围绕一个权威运行时状态及其行为，或者一个能够独立存在的无状态业务能力，不按技术层次、配置来源、JulyArch 角色或宽泛概念归组。
+- 产品运行时代码按业务模块放入 `Assets/Game/Scripts/Runtime/Modules/<模块名>/`。模块封装一组因同一业务原因共同变化的知识，不按技术层次、配置来源、JulyArch 角色、共享 Store、MDD 或宽泛概念归组。
 - 每个业务模块最多一个项目业务 System、最多一个项目业务 Store；出现第二个时停止并先调整模块边界，不把无关能力或状态强行合并。
-- 模块、System 和 Store 的名称与职责范围必须一致；只做少量框架调用转发的目录或类型不构成模块。
+- 每个 System 只代表一项长期业务能力；实施已有 System 的新增公开入口前，确认目标 MDD 已说明它与现有入口共同变化，否则停止并先更新 MDD。
+- 只做少量框架调用转发且没有当前实质复杂度或项目内已确认扩展的目录或类型不构成模块；已确认扩展不能来自模糊未来，也不据此预建空角色或抽象。
 - `Views`、`Generated`、`Shared` 等模板已有专用目录保持原有职责；Window、WindowData、GameView 和生成代码继续使用对应专用目录。
 - MDD 已写明且符合上述规则的路径必须遵循；旧 MDD 未写路径时，根据类型的业务职责选择对应模块目录。
 
