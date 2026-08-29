@@ -35,6 +35,8 @@ description: 仅在用户显式调用后，将游戏策划案生成 GDD、将 GD
 
 检查当前项目实际安装的 JulyFramework、Luban 和已有代码。某份 MDD 涉及 View 时，再读取 [references/july-ui-components.md](references/july-ui-components.md)。
 
+先从完整 GDD 建立候选模块图并执行全局归一化，再分配 JulyArch 角色和拆分 MDD；全部 MDD 写入后按实际产物再次检查模块与文档一致性。
+
 ### 实施指定 MDD
 
 读取：
