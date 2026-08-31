@@ -27,7 +27,8 @@
 - 目标 MDD 与来源模块设计、来源 GDD 或当前真实接口冲突；
 - 当前代码无法在不改变 MDD 设计的前提下正确适配；
 - 目标 MDD 要求项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装、无明确边界的数据快照、顶层角色目录或错误的 Luban 作者源命名；
-- 目标 MDD 会使同一业务模块出现第二个项目业务 System 或 Store，要求项目业务 ConfigSystem、ContentSystem 或配置聚合入口，或者模块无法说明长期业务能力、业务决策、状态所有权和明确排除。
+- 目标 MDD 会使同一业务模块出现第二个项目业务 System 或 Store，要求项目业务 ConfigSystem、ContentSystem 或配置聚合入口，或者模块无法说明长期业务能力、业务决策、状态所有权和明确排除；
+- 目标 MDD 要求 System 只转发 Store 查询或写入，或者要求 Procedure 只包装纯同步调用。
 
 ## 2. 唯一功能授权
 
@@ -43,11 +44,13 @@
 
 ## 3. 角色必须服从 MDD
 
-模块设计已经确定模块职责、状态所有权和角色规划，MDD 已将其细化为 Store、System、Procedure、Window、WindowData、GameView 与普通类型的具体职责。实施阶段不得删除、合并、替换或绕过这些角色。
+模块设计已经确定模块职责、状态生命周期、所有权和角色规划，MDD 已将其细化为 Store、System、Procedure、Window、WindowData、GameView 与普通类型的具体职责。实施阶段不得擅自删除、合并、替换或绕过符合 `july-architecture.md` 的角色；若实际代码证明角色不符合成立条件，先进入设计一致性修复。
 
-- 当前 Procedure 即使只执行一个步骤，也应保留 MDD 指定的角色和调用关系。
-- Window 通过 System 发起业务动作；System 根据 MDD 编排 Procedure。
-- Store 只通过具有业务语义的方法改变状态，不向外暴露任意写入口。
+- Procedure 只有在真实等待、跨帧、取消或嵌套流程时才保留；形式上返回 `Task` 的纯同步包装进入设计一致性修复。
+- Window 根据动作性质调用 Store 或 System：同步且只涉及单个 Store 的原子动作可直接调用 Store 语义方法；长期能力动作调用 System；异步或可取消流程由 System 编排 Procedure。
+- Store 只通过具有业务语义的方法改变自身状态，不向外暴露任意写入口；`GetData()` 是实时引用，调用方按只读约定使用。
+- System 可以直接管理随该长期能力创建和销毁的运行态，不为这些数据机械增加 Store。
+- System 不为隔离 Store 而提供一对一查询或写入转发。
 - 普通类型承载不属于 JulyArch 角色的局部职责。
 - 普通类型可以分解同一 System 的规则和算法，但不能用来掩盖该 System 已经公开并编排第二项长期业务能力。
 
@@ -60,6 +63,7 @@
 - 普通可失败操作返回 `bool`，并在负责判定失败的函数内部记录日志；不创建只承载成功状态、失败原因或错误文本的 `Result`。
 - 结算数据等 GDD 定义的真实业务计算产物可以使用独立类型，不改成 `bool`。
 - 不创建没有明确边界需要的 `XxxSnapshot`。WindowData、存档结构，以及 MDD 明确要求的回放、跨帧冻结或提交一致性数据不在此禁令内。
+- 不复制 Store Data 只为实现外部不可修改；直接返回实时数据并遵守只读约定，写入统一经过 Store 语义方法。
 - 默认信任 Framework 生命周期、Luban 生成配置、模块内部调用契约和 Store 自己完成的受控修改。
 - 不添加 `EnsureInitialized`、`EnsureConfigured`、写入后的 `ValidateState`、完整集合复检、重复空值检查或只为替换错误文本的异常包装。
 - 错误会在真实使用位置直接暴露时让其自然失败。只有不校验会继续产生错误业务结果或污染权威状态，或者 GDD 明确要求处理和恢复时，才在唯一责任位置增加最小校验。
@@ -115,8 +119,8 @@
 
 - WindowData 默认通过当前 July 项目的查询接口从 Store 或 System 获取显示数据。
 - WindowData 的字段保持可写，以便 GM 构造测试数据验证显示。
-- Window 只根据 WindowData 渲染显示，并通过 System 发起业务动作。
-- Window 不直接读取 Store，不在自身内部推导或保存业务状态。
+- Window 只根据 WindowData 渲染显示；业务动作按角色规则调用 Store 或 System，不直接构造 Procedure。
+- Window 不直接读取并组装 Store Data，不在自身内部推导或保存业务状态，也不直接修改 Store Data 的字段或集合。
 - 复杂界面按独立 UI 区域拆为 GameView；GameView 使用自己的显示数据，并服从所属 Window 的组合关系。
 - Window 类型名必须以 `UI` 开头、以 `Window` 结尾。对应 ID 统一写入 `UIWindowID` 纯常量静态类，字段名与 Window 类型名完全一致。
 - 创建、重命名或删除 Window 时，同步修改 `UIWindowID` 和 Luban 作者源 `TbUIWindow`；常量值与表中 ID 必须一致，不创建其他 Window ID 类或运行时注册服务。
@@ -146,8 +150,8 @@
 代码、作者源和生成产物写入后，必须：
 
 1. 从磁盘重新读取目标 MDD、其来源模块设计与来源 GDD、实际改动和受影响的公开边界，不依赖实施过程中的记忆；
-2. 对照目标 MDD 及其上游来源检查职责、角色、状态所有权、公开签名、文件范围、前置依赖和 `TODO(M999:Ixxx)`，确认没有设计漂移，也没有实施其他 MDD 的功能；
-3. 对照当前 Framework、Luban 和 UI API 检查真实调用，确认没有配置巡检、生命周期守卫、写后全状态复检、重复契约校验、假实现或默认降级；
+2. 对照目标 MDD 及其上游来源检查职责、角色、状态生命周期与所有权、公开签名、文件范围、前置依赖和 `TODO(M999:Ixxx)`，确认没有设计漂移，也没有实施其他 MDD 的功能；
+3. 对照当前 Framework、Luban 和 UI API 检查真实调用，确认没有浅 System 转发、纯同步 Procedure、配置巡检、生命周期守卫、写后全状态复检、重复契约校验、假实现或默认降级；
 4. 涉及作者源时运行项目已有生成入口，并检查生成结果来自作者源；
 5. 使用项目已有的编译或验证入口；不为本流程额外生成测试代码；
 6. 本次改动导致的问题应在当前实施范围内修正，然后重新读取改动并再次验证；缺失且尚未实施的必要前置依赖应停止并报告，MDD 或上游设计契约冲突则进入 `design-repair.md`；
