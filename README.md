@@ -78,12 +78,12 @@ $july-game-pipeline @DesignDoc/MDD/M002_每日题目.md 执行
 
 - 只修改 C# 代码、Luban 作者源以及本流程生成的 GDD、模块设计与 MDD 文档。
 - 使用项目当前真实存在的 JulyFramework、JulyArch、UI 组件和 Luban 接口。
-- 每个 Window 都必须有 WindowData；Window 只根据 Data 渲染，并通过 System 发起业务动作。
+- 每个 Window 都必须有 WindowData；Window 只根据 Data 渲染。同步且只涉及单个 Store 的原子动作可调用 Store 语义方法，长期能力动作调用 System，异步流程由 System 编排 Procedure。
 - Window 类型名固定以 `UI` 开头、以 `Window` 结尾；对应常量统一位于 `UIWindowID`，字段名与 Window 一致并对应 `TbUIWindow` 的 ID。
 - 项目 System 直接使用具体类型；不生成项目级 `IXXSystem`、静态业务容器、成功失败 `Result` 包装或无明确边界的数据快照。
-- 产品运行时代码按独立业务决策及一致性所有权放在 `Runtime/Modules/<模块名>`；共同变化是归组证据，模块数量更少只在边界同样正确时作为次级选择。模块边界先于 JulyArch 角色确定，每个模块最多一个项目业务 System、最多一个项目业务 Store，也可以缺少任一角色；`Modules` 下不要求独立 asmdef。
+- 产品运行时代码按独立业务决策及一致性所有权放在 `Runtime/Modules/<模块名>`；共同变化是归组证据，模块数量更少只在边界同样正确时作为次级选择。模块边界先于 JulyArch 角色确定；System、Store 和 Procedure 不是固定槽位，也没有数量目标，每个角色必须由真实的生命周期、定位、协作、替换或持久化需要成立；`Modules` 下不要求独立 asmdef。
 - 模块设计记录来源 GDD；每份 MDD 同时记录来源模块设计和来源 GDD。产品规则以 GDD 为准，模块职责和角色规划以模块设计为准，具体实施范围以当前 MDD 为准。
-- 第一版不创建项目业务 ConfigSystem、ContentSystem 或配置聚合入口；各业务模块直接使用框架 `IConfigSystem`，C# 不重复 Luban 已保存的具体配置事实。
+- 第一版不创建项目业务 ConfigSystem、ContentSystem 或配置聚合入口；实际承担配置读取的业务代码使用框架 `IConfigSystem`，不因读取配置额外创建 System，C# 不重复 Luban 已保存的具体配置事实。
 - 默认信任 Framework 生命周期、Luban 生成配置和模块内部契约；不生成启动巡检、重复状态校验或只为更友好报错存在的防御代码，只有错误会继续运行并污染状态或 GDD 明确要求恢复时才校验。
 - 新增 Luban 业务作者源 Excel 使用“中文业务名_英文标识.xlsx”；控制文件保持 Luban 固定名称，已有作者源不自动重命名。
 - 普通 MDD 实施完成后要求编译通过，但不要求立即形成可见或可玩的完整闭环。
