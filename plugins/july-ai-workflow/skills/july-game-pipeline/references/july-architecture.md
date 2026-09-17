@@ -114,7 +114,7 @@ WindowData：
 - 不负责导航；
 - 不创建或运行 Procedure。
 
-Window 使用注入的 WindowData；未注入时创建默认 WindowData。Window 始终只根据该 Data 渲染。
+WindowData 有且只有两种来源路径：调用方注入的实例直接成为本次显示输入，不得再被 Window 或 WindowData 的运行态查询覆盖；未注入时，Window 才创建默认实例，并在唯一映射位置从 Store 或 System 填充。正常入口要么注入已经填充的 Data，要么不注入，不能注入空默认实例后依赖隐藏的 `Refresh()` 完成首屏。Window 始终只根据最终 Data 渲染。
 
 业务事件不强制为空，可以携带表示业务事实所需的最小稳定数据；不要把 WindowData 放进业务事件。刷新可以简单全量，也可以按 MDD 的真实需要局部更新。
 
