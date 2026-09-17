@@ -75,6 +75,7 @@ $july-game-pipeline @一份文档 执行
 
 - [references/mdd.md](references/mdd.md)
 - [references/july-architecture.md](references/july-architecture.md)
+- [references/code-quality.md](references/code-quality.md)
 
 根据模块设计记录的来源路径读取对应 GDD，并检查当前项目实际安装的 JulyFramework、Luban 和已有代码。某份 MDD 涉及 View 时，再读取 [references/july-ui-components.md](references/july-ui-components.md)。这个动作不得重新拆分模块。
 
@@ -84,6 +85,7 @@ $july-game-pipeline @一份文档 执行
 
 - [references/implementation.md](references/implementation.md)
 - [references/july-architecture.md](references/july-architecture.md)
+- [references/code-quality.md](references/code-quality.md)
 
 只实施一份明确指定的 MDD。涉及 View 时，再读取 [references/july-ui-components.md](references/july-ui-components.md)。
 
@@ -103,7 +105,7 @@ $july-game-pipeline @一份文档 执行
 - 不自动安装 July 包；需要的能力不存在时报告。
 - 不生成或修改图片、图片提示词、UI 美术规划、Prefab、Scene、Inspector 绑定、材质、动画、音频或其他美术资源。
 - 不调用图片或 UI 美术插件。
-- 不自动生成目标项目测试、Mock、Fake、Fixture 或测试 asmdef。
+- 不创建或修改目标项目测试、Mock、Fake、Fixture、测试 asmdef 或其他测试资产，也不为测试便利扩大生产接口或建立接缝；可以运行项目已有验证入口。
 - 普通设计阶段只修改当前阶段授权的文档。实施 MDD 时，只能按照 `design-repair.md` 的分类与确认规则额外修改必要的 GDD、模块设计和 MDD；这不扩大当前 MDD 的产品功能范围。
 - 只修改当前执行授权的设计文档、C# 代码和 Luban 作者源；Luban 生成产物只能由项目已有生成流程产生。
 - 关键输入缺失或存在会改变产品、角色、状态所有权、公开接口的歧义时，停止并询问；每次只问一个问题，并给出推荐答案。
