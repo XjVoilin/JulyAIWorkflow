@@ -1,6 +1,6 @@
 ---
 name: july-game-pipeline
-description: 仅在用户显式调用并使用“@一份文档 执行”后，根据策划案、GDD、模块设计或单份 MDD 执行唯一下一步。适用于使用 JulyFramework 与 Luban 的 Unity 项目；不生成图片、Prefab 或测试。
+description: 仅在用户显式调用并使用“@一份文档 执行”后，根据策划案、GDD、模块设计或单份 MDD 执行唯一下一步。适用于使用 JulyFramework 与 Luban 的 Unity 项目；不生成图片或 Prefab，实施时按 MDD 验证方案维护必要测试。
 ---
 
 # July 游戏研发流程
@@ -105,7 +105,7 @@ $july-game-pipeline @一份文档 执行
 - 不自动安装 July 包；需要的能力不存在时报告。
 - 不生成或修改图片、图片提示词、UI 美术规划、Prefab、Scene、Inspector 绑定、材质、动画、音频或其他美术资源。
 - 不调用图片或 UI 美术插件。
-- 不创建或修改目标项目测试、Mock、Fake、Fixture、测试 asmdef 或其他测试资产，也不为测试便利扩大生产接口或建立接缝；可以运行项目已有验证入口。
+- 实施 MDD 时按其验证方案创建或修改必要测试、Fixture 和测试 asmdef；测试必须穿过真实业务接口，不创建生产 Mock/Fake，不把成员改成 `public`，不复制快照或建立假接缝。独立测试程序集可按项目约定使用 `InternalsVisibleTo` 访问既有 `internal` 模块接口，但不得新增测试专用方法或状态写入口。
 - 普通设计阶段只修改当前阶段授权的文档。实施 MDD 时，只能按照 `design-repair.md` 的分类与确认规则额外修改必要的 GDD、模块设计和 MDD；这不扩大当前 MDD 的产品功能范围。
 - 只修改当前执行授权的设计文档、C# 代码和 Luban 作者源；Luban 生成产物只能由项目已有生成流程产生。
 - 关键输入缺失或存在会改变产品、角色、状态所有权、公开接口的歧义时，停止并询问；每次只问一个问题，并给出推荐答案。
