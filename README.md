@@ -95,7 +95,14 @@ $july-game-pipeline @DesignDoc/MDD/M002_每日题目.md 执行
 
 默认以修改功能时的理解成本衡量职责划分：集中相关规则、参数解释和局部状态，通过少量明确契约协作，不强求单文件修改或固定分层。状态保持唯一权威，表现拥有自己的动画状态；根据当前需求选择拉取或事件，不为了消除 Update 增加调度机制。优先直接实现、具体命名和聚焦改动，采用边界验证、内部信任、违约快速失败，并使验证强度与风险匹配。
 
-这些是默认决策原则，不是固定架构模板；具体设计应说明依据与取舍。一次任务中的“不需要测试”不会成为长期免验证规则。模块划分在 `module-design.md` 中检查修改所需的理解范围，实施细则集中在 `code-quality.md`。
+这些是默认决策原则，不是固定架构模板；具体设计应说明依据与取舍。一次任务中的“不需要测试”不会成为长期免验证规则。
+
+需要 System 的业务模块，默认由它直接持有局部能力、管理生命周期和跨能力顺序；各能力维护自己的规则、状态和完整操作。职责区分不要求额外总 Runtime、工厂或逐类接口。协作按需要选择值结果、当次查询、有限能力接口或直接调用，扩展允许在语义改变时修改模型。
+
+- [角色、生命周期与复用边界](plugins/july-ai-workflow/skills/july-game-pipeline/references/july-architecture.md)：各角色的成立依据，以及约定、公共代码和业务规则的归属。
+- [设计过程与评审](plugins/july-ai-workflow/skills/july-game-pipeline/references/module-design.md)：从证据推导边界，记录理由、适用条件和反例。
+- [协作与实现规则](plugins/july-ai-workflow/skills/july-game-pipeline/references/code-quality.md)：契约选择、创建、扩展及失败策略。
+- [可选的完整代码示例](plugins/july-ai-workflow/skills/july-game-pipeline/references/architecture-examples.md)：需要校准职责粒度时阅读，展示输入到状态及表现更新，并说明哪些变化会使其形状失效。
 
 ## 仓库结构
 
@@ -113,8 +120,9 @@ plugins/july-ai-workflow/
       implementation.md
       design-repair.md
       july-architecture.md
+      architecture-examples.md
       july-ui-components.md
       code-quality.md
 ```
 
-Skill 保持最小结构。规则集中在入口和八份按需加载的参考文档中，不依赖脚本、流程状态文件或额外机器契约。
+Skill 的规则集中在入口和按需加载的参考文档中，不依赖流程状态文件或额外机器契约。示例按需阅读，不增加工作流阶段或目标项目的强制模块。

@@ -18,7 +18,7 @@ description: 仅在用户显式调用并使用“@一份文档 执行”后，�
 
 ## 文档识别
 
-读取用户 `@` 指定文件的实际内容，按以下优先级识别。`文档类型` 标识必须是整行精确值，并且优先于文件名：
+读取用户 `@` 指定文件的实际内容，按以下优先级识别。`文档类型` 标识必须独占一行，允许模板使用的 Markdown 列表前缀 `- `；去掉前缀后须与下列值精确匹配，并且优先于文件名：
 
 1. `文档类型：MDD`；兼容旧产物时，文件名与一级标题都含相同的 `Mxxx`，并且正文同时记录来源模块设计和来源 GDD。
 2. `文档类型：模块设计`；兼容旧产物时，一级标题明确是模块设计，并且正文记录唯一来源 GDD。
@@ -68,6 +68,8 @@ $july-game-pipeline @一份文档 执行
 - [references/july-architecture.md](references/july-architecture.md)
 
 检查当前项目已有产品代码、状态、配置和注册关系，只生成或更新模块设计，不生成 MDD。
+
+需要确定跨能力协作形式或时间契约时，读取 [references/code-quality.md](references/code-quality.md) 的对应部分。只有需要用具体代码校准职责粒度时，才读取 [references/architecture-examples.md](references/architecture-examples.md)；示例不增加模块设计的代码产物，也不规定业务类型或目录。
 
 ### 模块设计到 MDD
 
